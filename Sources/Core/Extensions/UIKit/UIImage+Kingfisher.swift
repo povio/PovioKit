@@ -5,7 +5,6 @@
 //  Created by Borut Tomazin on 26. 9. 24.
 //
 
-#if canImport(Kingfisher)
 import UIKit
 import Kingfisher
 
@@ -73,19 +72,19 @@ public extension UIImage {
   /// let result = await UIImage.prefetch(urls: urls)
   /// Logger.info("Skipped: \(result.skipped), Failed: \(result.failed), Completed: \(result.completed)")
   /// ```
-  /// 
+  ///
   /// - Note: This function should be called from an asynchronous context using `await`.
   @discardableResult
   static func prefetch(from urls: [URL]) async -> PrefetchResult {
     await withCheckedContinuation { continuation in
-      let prefetcher = ImagePrefetcher(urls: urls, options: nil) { skipped, failed, completed in
+      let prefetcher = ImagePrefetcher(urls: urls, options: nil, completionHandler:  { skipped, failed, completed in
         let result = PrefetchResult(
           skipped: skipped.count,
           failed: failed.count,
           completed: completed.count
         )
         continuation.resume(with: .success(result))
-      }
+      })
       prefetcher.start()
     }
   }
@@ -107,8 +106,7 @@ public extension UIImage {
   /// let customCache = ImageCache(name: "customCache")
   /// UIImage.clearCache(customCache)
   /// ```
-  public static func clearCache(_ cache: ImageCache = KingfisherManager.shared.cache) {
+  static func clearCache(_ cache: ImageCache = KingfisherManager.shared.cache) {
     cache.clearCache()
   }
 }
-#endif
