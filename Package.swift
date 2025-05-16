@@ -41,11 +41,18 @@ let package = Package(
     .package(
       url: "https://github.com/Alamofire/Alamofire", 
       .upToNextMajor(from: "5.0.0")
+    ),
+    .package(
+      url: "https://github.com/onevcat/Kingfisher",
+      .upToNextMajor(from: "8.0.0")
     )
   ],
   targets: [
     .target(
       name: "PovioKitCore",
+      dependencies: [
+        "Kingfisher",
+      ],
       path: "Sources/Core",
       resources: [.copy("../PrivacyInfo.xcprivacy")]
     ),
@@ -67,6 +74,7 @@ let package = Package(
     .target(
       name: "PovioKitUIKit",
       dependencies: [
+        "Kingfisher",
         "PovioKitCore",
         "PovioKitUtilities",
       ],
@@ -76,6 +84,7 @@ let package = Package(
     .target(
       name: "PovioKitSwiftUI",
       dependencies: [
+        "Kingfisher",
         "PovioKitCore",
       ],
       path: "Sources/UI/SwiftUI",
