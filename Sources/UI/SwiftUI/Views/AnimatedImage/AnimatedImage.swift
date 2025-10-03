@@ -16,24 +16,24 @@ import SwiftUI
 @available(iOS 15.0, *)
 public struct AnimatedImage: View {
   private let source: Source
-  private let animated: Bool
-  private let autoStartAnimation: Bool
+  private let autoplay: Bool
   private let repeatCount: AnimatedImageView.RepeatCount
+  private let options: KingfisherOptionsInfo?
   private let onAnimationStart: (() -> Void)?
   private let onAnimationEnd: (() -> Void)?
   
   public init(
-    source: Source, 
-    animated: Bool = false,
-    autoStartAnimation: Bool = true,
+    source: Source,
+    autoplay: Bool = true,
     repeatCount: AnimatedImageView.RepeatCount = .infinite,
+    options: KingfisherOptionsInfo? = nil,
     onAnimationStart: (() -> Void)? = nil,
     onAnimationEnd: (() -> Void)? = nil
   ) {
     self.source = source
-    self.animated = animated
-    self.autoStartAnimation = autoStartAnimation
+    self.autoplay = autoplay
     self.repeatCount = repeatCount
+    self.options = options
     self.onAnimationStart = onAnimationStart
     self.onAnimationEnd = onAnimationEnd
   }
@@ -41,9 +41,9 @@ public struct AnimatedImage: View {
   public var body: some View {
     AnimatedImageViewRepresentable(
       source: source,
-      animated: animated,
-      autoStartAnimation: autoStartAnimation,
+      autoplay: autoplay,
       repeatCount: repeatCount,
+      options: options,
       onAnimationStart: onAnimationStart,
       onAnimationEnd: onAnimationEnd
     )
@@ -53,15 +53,15 @@ public struct AnimatedImage: View {
 @available(iOS 15.0, *)
 private struct AnimatedImageViewRepresentable: UIViewRepresentable {
   let source: AnimatedImage.Source
-  let animated: Bool
-  let autoStartAnimation: Bool
+  let autoplay: Bool
   let repeatCount: AnimatedImageView.RepeatCount
+  let options: KingfisherOptionsInfo?
   let onAnimationStart: (() -> Void)?
   let onAnimationEnd: (() -> Void)?
   
   func makeUIView(context: Context) -> AnimatedImageView {
     let imageView = AnimatedImageView()
-    imageView.autoPlayAnimatedImage = autoStartAnimation
+    imageView.autoPlayAnimatedImage = autoplay
     imageView.repeatCount = repeatCount
     imageView.delegate = context.coordinator
     return imageView
@@ -74,18 +74,14 @@ private struct AnimatedImageViewRepresentable: UIViewRepresentable {
       if let fileUrl = Bundle.main.url(forResource: fileName, withExtension: "gif") {
         imageView.kf.setImage(
           with: .provider(LocalFileImageDataProvider(fileURL: fileUrl)),
-          options: [
-            .transition(.fade(animated ? 0.25 : 0))
-          ]
+          options: options
         )
       }
     case .remote(let url):
       if let url = url {
         imageView.kf.setImage(
           with: url,
-          options: [
-            .transition(.fade(animated ? 0.25 : 0))
-          ]
+          options: options
         )
       }
     }
