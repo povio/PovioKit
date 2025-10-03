@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -36,6 +36,10 @@
 		999EF7C52D6E069800F280E8 /* RemoteImageComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImageComponent.swift; sourceTree = "<group>"; };
 		999EF7C72D6E081800F280E8 /* LinearProgressStyleComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinearProgressStyleComponent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		9986B6EE2E2F90A100C393C2 /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Resources; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		998E6EF0297E82F700D33909 /* Frameworks */ = {
@@ -86,6 +90,7 @@
 		998E6EF5297E82F700D33909 /* Storybook */ = {
 			isa = PBXGroup;
 			children = (
+				9986B6EE2E2F90A100C393C2 /* Resources */,
 				998E6F0B297E936D00D33909 /* Components */,
 				998E6EF6297E82F700D33909 /* StorybookApp.swift */,
 				998E6EF8297E82F700D33909 /* ContentView.swift */,
@@ -131,6 +136,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				9986B6EE2E2F90A100C393C2 /* Resources */,
 			);
 			name = Storybook;
 			packageProductDependencies = (
