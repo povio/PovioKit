@@ -63,6 +63,8 @@ public extension URL {
   }
 }
 
+extension URL: @retroactive ExpressibleByExtendedGraphemeClusterLiteral {}
+extension URL: @retroactive ExpressibleByUnicodeScalarLiteral {}
 extension Foundation.URL: Swift.ExpressibleByStringLiteral {
   /// A failable initializer that allows a `URL` object to be created from a string literal.
   ///

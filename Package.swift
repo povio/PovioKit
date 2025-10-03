@@ -60,6 +60,7 @@ let package = Package(
       name: "PovioKitNetworking",
       dependencies: [
         "Alamofire",
+        "PovioKitCore",
         "PovioKitPromise",
       ],
       path: "Sources/Networking",
