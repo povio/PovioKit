@@ -15,7 +15,6 @@ Core package including utility tools.
 | [Delegated](Delegated) |
 | [DispatchTimer](DispatchTimer) |
 | [Exif](Exif) |
-| [ImageSource](/Sources/Utilities/ImageSource/ImageSource.swift) |
 | [InAppPurchase](InAppPurchase) |
 | [MediaPlayer](/Sources/Utilities/MediaPlayer) |
 | [Money](Money) |
