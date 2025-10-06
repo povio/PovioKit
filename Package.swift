@@ -75,7 +75,6 @@ let package = Package(
     .target(
       name: "PovioKitUIKit",
       dependencies: [
-        "Kingfisher",
         "PovioKitCore",
         "PovioKitUtilities",
       ],
@@ -85,7 +84,6 @@ let package = Package(
     .target(
       name: "PovioKitSwiftUI",
       dependencies: [
-        "Kingfisher",
         "PovioKitCore",
       ],
       path: "Sources/UI/SwiftUI",
