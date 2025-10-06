@@ -9,9 +9,6 @@ import SwiftUI
 import PovioKitSwiftUI
 
 struct AnimatedImageComponent: View {
-  @State private var animationStarted = false
-  @State private var animationEnded = false
-  
   var body: some View {
     VStack(spacing: 20) {
       // Basic usage
@@ -33,18 +30,15 @@ struct AnimatedImageComponent: View {
           .font(.headline)
         AnimatedImage(
           source: .local(fileName: "animation"),
-          animated: true,
-          autoStartAnimation: true,
           repeatCount: .finite(count: 3), // Play 3 times then stop
-          onAnimationStart: {
-            animationStarted = true
-            print("Animation started!")
-          },
-          onAnimationEnd: {
-            animationEnded = true
-            print("Animation ended!")
-          }
+          options: [.transition(.fade(0.3))]
         )
+        .onStart {
+          print("Animation started!")
+        }
+        .onEnd {
+          print("Animation ended!")
+        }
         .squared()
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .overlay {
@@ -59,8 +53,8 @@ struct AnimatedImageComponent: View {
           .font(.headline)
         AnimatedImage(
           source: .local(fileName: "animation"),
-          animated: true,
-          autoStartAnimation: false // Don't start automatically
+          autoplay: false, // Don't start automatically
+          options: [.transition(.fade(0.3))]
         )
         .squared()
         .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -69,19 +63,6 @@ struct AnimatedImageComponent: View {
             .stroke(.green, lineWidth: 2)
         }
       }
-      
-      // Status indicators
-      VStack(spacing: 8) {
-        Text("Animation Status:")
-          .font(.caption)
-        Text("Started: \(animationStarted ? "Yes" : "No")")
-          .font(.caption)
-          .foregroundColor(animationStarted ? .green : .red)
-        Text("Ended: \(animationEnded ? "Yes" : "No")")
-          .font(.caption)
-          .foregroundColor(animationEnded ? .green : .red)
-      }
-      .padding(.top)
     }
     .padding(20)
   }

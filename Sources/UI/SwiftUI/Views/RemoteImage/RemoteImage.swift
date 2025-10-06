@@ -24,6 +24,12 @@ import SwiftUI
 ///     Text("Loading...")
 ///       .foregroundColor(.gray)
 ///   }
+///   .onSuccess { result in
+///     print("Image loaded successfully")
+///   }
+///   .onFailure { error in
+///     print("Failed to load image: \(error)")
+///   }
 /// ```
 @available(iOS 15.0, *)
 public struct RemoteImage<Placeholder: View>: View {
@@ -31,19 +37,17 @@ public struct RemoteImage<Placeholder: View>: View {
   private let animated: Bool
   private var placeholder: Placeholder?
   private var onSuccess: ((RetrieveImageResult) -> Void)?
-  private var onError: ((KingfisherError) -> Void)?
+  private var onFailure: ((KingfisherError) -> Void)?
   
   public init(
     url: URL?,
-    animated: Bool = false,
-    onSuccess: ((RetrieveImageResult) -> Void)? = nil,
-    onError: ((KingfisherError) -> Void)? = nil
+    animated: Bool = false
   ) where Placeholder == EmptyView {
     self.url = url
     self.animated = animated
     self.placeholder = EmptyView()
-    self.onSuccess = onSuccess
-    self.onError = onError
+    self.onSuccess = nil
+    self.onFailure = nil
   }
   
   private init(
@@ -51,20 +55,20 @@ public struct RemoteImage<Placeholder: View>: View {
     animated: Bool = false,
     placeholder: Placeholder?,
     onSuccess: ((RetrieveImageResult) -> Void)? = nil,
-    onError: ((KingfisherError) -> Void)? = nil
+    onFailure: ((KingfisherError) -> Void)? = nil
   ) {
     self.url = url
     self.animated = animated
     self.placeholder = placeholder
     self.onSuccess = onSuccess
-    self.onError = onError
+    self.onFailure = onFailure
   }
   
   public var body: some View {
     if let url {
       KFImage(url)
         .onSuccess(onSuccess)
-        .onFailure(onError)
+        .onFailure(onFailure)
         .placeholder { placeholder }
         .fade(duration: animated ? 0.25 : 0)
         .resizable()
@@ -88,7 +92,37 @@ public extension RemoteImage {
     RemoteImage<NewPlaceholder>(
       url: url,
       animated: animated,
-      placeholder: placeholder()
+      placeholder: placeholder(),
+      onSuccess: onSuccess,
+      onFailure: onFailure
+    )
+  }
+  
+  /// Sets a success callback for the `RemoteImage`.
+  ///
+  /// - Parameter callback: A closure that gets called when the image is successfully loaded.
+  /// - Returns: A new `RemoteImage` instance with the specified success callback.
+  func onSuccess(_ callback: @escaping (RetrieveImageResult) -> Void) -> RemoteImage {
+    RemoteImage(
+      url: url,
+      animated: animated,
+      placeholder: placeholder,
+      onSuccess: callback,
+      onFailure: onFailure
+    )
+  }
+  
+  /// Sets a failure callback for the `RemoteImage`.
+  ///
+  /// - Parameter callback: A closure that gets called when the image fails to load.
+  /// - Returns: A new `RemoteImage` instance with the specified failure callback.
+  func onFailure(_ callback: @escaping (KingfisherError) -> Void) -> RemoteImage {
+    RemoteImage(
+      url: url,
+      animated: animated,
+      placeholder: placeholder,
+      onSuccess: onSuccess,
+      onFailure: callback
     )
   }
 }

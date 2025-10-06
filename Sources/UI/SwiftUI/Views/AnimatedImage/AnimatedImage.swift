@@ -18,23 +18,37 @@ public struct AnimatedImage: View {
   private let autoplay: Bool
   private let repeatCount: AnimatedImageView.RepeatCount
   private let options: KingfisherOptionsInfo?
-  private let onAnimationStart: (() -> Void)?
-  private let onAnimationEnd: (() -> Void)?
+  private var onStart: (() -> Void)?
+  private var onEnd: (() -> Void)?
   
   public init(
     source: Source,
     autoplay: Bool = true,
     repeatCount: AnimatedImageView.RepeatCount = .infinite,
-    options: KingfisherOptionsInfo? = nil,
-    onAnimationStart: (() -> Void)? = nil,
-    onAnimationEnd: (() -> Void)? = nil
+    options: KingfisherOptionsInfo? = nil
   ) {
     self.source = source
     self.autoplay = autoplay
     self.repeatCount = repeatCount
     self.options = options
-    self.onAnimationStart = onAnimationStart
-    self.onAnimationEnd = onAnimationEnd
+    self.onStart = nil
+    self.onEnd = nil
+  }
+
+  private init(
+    source: Source,
+    autoplay: Bool = true,
+    repeatCount: AnimatedImageView.RepeatCount = .infinite,
+    options: KingfisherOptionsInfo? = nil,
+    onStart: (() -> Void)? = nil,
+    onEnd: (() -> Void)? = nil
+  ) {
+    self.source = source
+    self.autoplay = autoplay
+    self.repeatCount = repeatCount
+    self.options = options
+    self.onStart = onStart
+    self.onEnd = onEnd
   }
   
   public var body: some View {
@@ -43,9 +57,20 @@ public struct AnimatedImage: View {
       autoplay: autoplay,
       repeatCount: repeatCount,
       options: options,
-      onAnimationStart: onAnimationStart,
-      onAnimationEnd: onAnimationEnd
+      onAnimationStart: onStart,
+      onAnimationEnd: onEnd
     )
+  }
+}
+
+@available(iOS 15.0, *)
+private class CustomAnimatedImageView: AnimatedImageView {
+  var onAnimationStart: (() -> Void)?
+
+  override func startAnimating() {
+    super.startAnimating()
+    // Call the start callback when animation actually begins
+    onAnimationStart?()
   }
 }
 
@@ -57,16 +82,17 @@ private struct AnimatedImageViewRepresentable: UIViewRepresentable {
   let options: KingfisherOptionsInfo?
   let onAnimationStart: (() -> Void)?
   let onAnimationEnd: (() -> Void)?
-  
-  func makeUIView(context: Context) -> AnimatedImageView {
-    let imageView = AnimatedImageView()
+
+  func makeUIView(context: Context) -> CustomAnimatedImageView {
+    let imageView = CustomAnimatedImageView()
     imageView.autoPlayAnimatedImage = autoplay
     imageView.repeatCount = repeatCount
     imageView.delegate = context.coordinator
+    imageView.onAnimationStart = onAnimationStart
     return imageView
   }
   
-  func updateUIView(_ imageView: AnimatedImageView, context: Context) {
+  func updateUIView(_ imageView: CustomAnimatedImageView, context: Context) {
     // Update the image source
     switch source {
     case .local(let fileName):
@@ -91,20 +117,14 @@ private struct AnimatedImageViewRepresentable: UIViewRepresentable {
   }
   
   class Coordinator: NSObject, AnimatedImageViewDelegate {
-    let onAnimationStart: (() -> Void)?
-    let onAnimationEnd: (() -> Void)?
-    
+    let onEnd: (() -> Void)?
+
     init(onAnimationStart: (() -> Void)?, onAnimationEnd: (() -> Void)?) {
-      self.onAnimationStart = onAnimationStart
-      self.onAnimationEnd = onAnimationEnd
+      self.onEnd = onAnimationEnd
     }
-    
-    func animatedImageView(_ imageView: AnimatedImageView, didStartAnimating image: KFCrossPlatformImage) {
-      onAnimationStart?()
-    }
-    
-    func animatedImageView(_ imageView: AnimatedImageView, didStopAnimating image: KFCrossPlatformImage) {
-      onAnimationEnd?()
+
+    func animatedImageViewDidFinishAnimating(_ imageView: AnimatedImageView) {
+      onEnd?()
     }
   }
 }
@@ -115,5 +135,35 @@ public extension AnimatedImage {
   enum Source {
     case local(fileName: String)
     case remote(url: URL?)
+  }
+
+  /// Sets a start callback for the `AnimatedImage`.
+  ///
+  /// - Parameter callback: A closure that gets called when the animation starts.
+  /// - Returns: A new `AnimatedImage` instance with the specified start callback.
+  func onStart(_ callback: @escaping () -> Void) -> AnimatedImage {
+    AnimatedImage(
+      source: source,
+      autoplay: autoplay,
+      repeatCount: repeatCount,
+      options: options,
+      onStart: callback,
+      onEnd: onEnd
+    )
+  }
+
+  /// Sets an end callback for the `AnimatedImage`.
+  ///
+  /// - Parameter callback: A closure that gets called when the animation ends.
+  /// - Returns: A new `AnimatedImage` instance with the specified end callback.
+  func onEnd(_ callback: @escaping () -> Void) -> AnimatedImage {
+    AnimatedImage(
+      source: source,
+      autoplay: autoplay,
+      repeatCount: repeatCount,
+      options: options,
+      onStart: onStart,
+      onEnd: callback
+    )
   }
 }
