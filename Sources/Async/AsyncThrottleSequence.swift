@@ -59,8 +59,6 @@ import Foundation
 /// ## Parameters:
 ///   - BaseSequence: The type of the underlying `AsyncSequence`.
 ///   - C: The type of the `Clock` used to measure the delay between tasks.
-@available(iOS 16.0, *)
-@available(macOS 13.0, *)
 public struct AsyncThrottleSequence<BaseSequence: AsyncSequence, C: Clock> {
   let baseSequence: BaseSequence
   let clock: C
@@ -84,8 +82,6 @@ public struct AsyncThrottleSequence<BaseSequence: AsyncSequence, C: Clock> {
 }
 
 /// An extension that makes `AsyncThrottleSequence` conform to `AsyncSequence` when `C.Duration` is equal to `Duration`.
-@available(iOS 16.0, *)
-@available(macOS 13.0, *)
 extension AsyncThrottleSequence: AsyncSequence where C.Duration == Duration {
   public typealias Element = BaseSequence.Element
   
@@ -157,8 +153,6 @@ extension AsyncThrottleSequence: AsyncSequence where C.Duration == Duration {
 }
 
 public extension AsyncSequence {
-  @available(iOS 16.0, *)
-  @available(macOS 13.0, *)
   func throttle<C: Clock>(
     clock: C,
     delayBetweenTasks: C.Duration

@@ -8,7 +8,6 @@
 
 import SwiftUI
 
-@available(iOS 15.0, *)
 public struct TextFieldLimitModifer: ViewModifier {
   @Binding var text: String
   let limit: Int
@@ -22,7 +21,6 @@ public struct TextFieldLimitModifer: ViewModifier {
   }
 }
 
-@available(iOS 15.0, *)
 public extension View {
   /// Limit input length
   func limitInput(text: Binding<String>, limit: Int) -> some View {

@@ -12,7 +12,6 @@ import SwiftUI
 ///
 /// It uses `Kingfisher` for handling the image loading from both sources.
 /// This implementation provides access to advanced animation customization options.
-@available(iOS 15.0, *)
 public struct AnimatedImage: View {
   private let source: Source
   private let autoplay: Bool
@@ -63,7 +62,6 @@ public struct AnimatedImage: View {
   }
 }
 
-@available(iOS 15.0, *)
 private class CustomAnimatedImageView: AnimatedImageView {
   var onAnimationStart: (() -> Void)?
 
@@ -74,7 +72,6 @@ private class CustomAnimatedImageView: AnimatedImageView {
   }
 }
 
-@available(iOS 15.0, *)
 private struct AnimatedImageViewRepresentable: UIViewRepresentable {
   let source: AnimatedImage.Source
   let autoplay: Bool
@@ -129,7 +126,6 @@ private struct AnimatedImageViewRepresentable: UIViewRepresentable {
   }
 }
 
-@available(iOS 15.0, *)
 public extension AnimatedImage {
   /// Enum representing the source of the animated image.
   enum Source {

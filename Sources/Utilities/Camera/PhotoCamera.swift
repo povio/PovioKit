@@ -62,7 +62,7 @@ public extension PhotoCamera {
       }
       
       let photoSettings = AVCapturePhotoSettings()
-      photoSettings.isHighResolutionPhotoEnabled = isHighResolutionPhotoEnabled
+      photoSettings.maxPhotoDimensions = isHighResolutionPhotoEnabled ? self.photoOutput.maxPhotoDimensions : .init(width: 0, height: 0)
       photoSettings.photoQualityPrioritization = qualityPrioritization
       if self.photoOutput.supportedFlashModes.contains(flashMode) {
         photoSettings.flashMode = flashMode
@@ -140,7 +140,6 @@ private extension PhotoCamera {
         throw Camera.Error.missingOutput
       }
       session.addOutput(photoOutput)
-      photoOutput.isHighResolutionCaptureEnabled = true
     }
     
     session.commitConfiguration()

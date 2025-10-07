@@ -20,7 +20,6 @@ public enum AppInfo {
   }
   
   /// Opens `Notifications` section in `Settings` app.
-  @available(iOS 16.0, *)
   public static func openNotificationSettings() {
     URL(string: UIApplication.openNotificationSettingsURLString).map { openUrl($0) }
   }

@@ -82,7 +82,6 @@ public extension String {
   /// - Parameter options: Configures the markdown parsing behavior. Some developers have reported that the full parsing is too strict and sometimes
   /// doesn't render new lines. Use `.inlineOnlyPreservingWhitespace` for a more lenient parsing.
   /// - Precondition: Requires iOS 15 and above.
-  @available(iOS 15, *)
   func toMarkdown(
     options: AttributedString.MarkdownParsingOptions = AttributedString.MarkdownParsingOptions(
       interpretedSyntax: .full

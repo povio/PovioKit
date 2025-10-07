@@ -10,7 +10,6 @@
 import SwiftUI
 
 /// https://stackoverflow.com/a/59878898
-@available(iOS 15.0, *)
 public struct PinchToZoomModifier: ViewModifier {
   @StateObject private var viewModel = PinchZoomViewModel()
 
@@ -25,7 +24,6 @@ public struct PinchToZoomModifier: ViewModifier {
   }
 }
 
-@available(iOS 15.0, *)
 public extension View {
   func pinchToZoom() -> some View {
     self.modifier(PinchToZoomModifier())
