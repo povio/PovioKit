@@ -1,5 +1,9 @@
 ## Migration Guides
 
+### Migration from versions < 6.0.0
+* [Networking] In order to continue using PovioKitNetworking, you'll need to install it as a [separate dependency](https://github.com/povio/PovioKitNetworking).
+* [PromiseKit] In order to continue using PovioKitPromiseKit, you'll need to install is as a [separate dependency](https://github.com/povio/PovioKitNetworking).
+
 ### Migration from versions < 5.0.0
 * [UI] Removed `ActionButton`, `ProfileImageView`.
 
