@@ -6,10 +6,8 @@
 //  Copyright © 2024 Povio Inc. All rights reserved.
 //
 
-import SwiftUI
-#if canImport(Kingfisher)
 import Kingfisher
-#endif
+import SwiftUI
 
 /// A view that asynchronously loads and displays an image from the provided URL.
 ///
@@ -26,44 +24,55 @@ import Kingfisher
 ///     Text("Loading...")
 ///       .foregroundColor(.gray)
 ///   }
+///   .onSuccess { result in
+///     print("Image loaded successfully")
+///   }
+///   .onFailure { error in
+///     print("Failed to load image: \(error)")
+///   }
 /// ```
 @available(iOS 15.0, *)
 public struct RemoteImage<Placeholder: View>: View {
   private let url: URL?
   private let animated: Bool
   private var placeholder: Placeholder?
+  private var onSuccess: ((RetrieveImageResult) -> Void)?
+  private var onFailure: ((KingfisherError) -> Void)?
   
-  public init(url: URL?, animated: Bool = false) where Placeholder == EmptyView {
+  public init(
+    url: URL?,
+    animated: Bool = false
+  ) where Placeholder == EmptyView {
     self.url = url
     self.animated = animated
     self.placeholder = EmptyView()
+    self.onSuccess = nil
+    self.onFailure = nil
   }
   
-  private init(url: URL?, animated: Bool = false, placeholder: Placeholder?) {
+  private init(
+    url: URL?,
+    animated: Bool = false,
+    placeholder: Placeholder?,
+    onSuccess: ((RetrieveImageResult) -> Void)? = nil,
+    onFailure: ((KingfisherError) -> Void)? = nil
+  ) {
     self.url = url
     self.animated = animated
     self.placeholder = placeholder
+    self.onSuccess = onSuccess
+    self.onFailure = onFailure
   }
   
   public var body: some View {
     if let url {
-#if canImport(Kingfisher)
       KFImage(url)
-        .placeholder {
-          placeholder
-        }
+        .onSuccess(onSuccess)
+        .onFailure(onFailure)
+        .placeholder { placeholder }
         .fade(duration: animated ? 0.25 : 0)
         .resizable()
         .scaledToFill()
-#else
-      AsyncImage(url: url) { image in
-        image
-          .resizable()
-          .scaledToFill()
-      } placeholder: {
-        placeholder
-      }
-#endif
     } else {
       placeholder
     }
@@ -83,7 +92,37 @@ public extension RemoteImage {
     RemoteImage<NewPlaceholder>(
       url: url,
       animated: animated,
-      placeholder: placeholder()
+      placeholder: placeholder(),
+      onSuccess: onSuccess,
+      onFailure: onFailure
+    )
+  }
+  
+  /// Sets a success callback for the `RemoteImage`.
+  ///
+  /// - Parameter callback: A closure that gets called when the image is successfully loaded.
+  /// - Returns: A new `RemoteImage` instance with the specified success callback.
+  func onSuccess(_ callback: @escaping (RetrieveImageResult) -> Void) -> RemoteImage {
+    RemoteImage(
+      url: url,
+      animated: animated,
+      placeholder: placeholder,
+      onSuccess: callback,
+      onFailure: onFailure
+    )
+  }
+  
+  /// Sets a failure callback for the `RemoteImage`.
+  ///
+  /// - Parameter callback: A closure that gets called when the image fails to load.
+  /// - Returns: A new `RemoteImage` instance with the specified failure callback.
+  func onFailure(_ callback: @escaping (KingfisherError) -> Void) -> RemoteImage {
+    RemoteImage(
+      url: url,
+      animated: animated,
+      placeholder: placeholder,
+      onSuccess: onSuccess,
+      onFailure: callback
     )
   }
 }

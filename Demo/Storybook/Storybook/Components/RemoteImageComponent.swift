@@ -5,6 +5,7 @@
 //  Created by Borut Tomazin on 25/02/2025.
 //
 
+import PovioKitCore
 import PovioKitSwiftUI
 import SwiftUI
 
@@ -16,6 +17,12 @@ struct RemoteImageComponent: View {
     )
     .placeholder {
       Text("Loading...")
+    }
+    .onSuccess { _ in
+      Logger.debug("On success")
+    }
+    .onFailure{ error in
+      Logger.debug("On error \(error)!")
     }
     .squared()
     .clipShape(RoundedRectangle(cornerRadius: 10))
