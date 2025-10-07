@@ -15,7 +15,6 @@ import SwiftUI
 /// a function that will be called whenever the view scrolls.
 ///
 /// Source: https://github.com/danielsaidi/ScrollKit/blob/main/Sources/ScrollKit/ScrollViewWithOffset.swift
-@available(iOS 15.0, *)
 public struct ScrollViewWithOffset<Content: View>: View {
   /**
    Create a scroll view with offset tracking.

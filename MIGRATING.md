@@ -1,5 +1,11 @@
 ## Migration Guides
 
+### Migration from versions < 6.0.0
+* We dropped support for iOS 13, 14 and 15. Supported versions are 16+.
+* We dropped support for macOS 12. Supported versions are 13+.
+* [Networking] In order to continue using PovioKitNetworking, you'll need to install it as a [separate dependency](https://github.com/povio/PovioKitNetworking).
+* [PromiseKit] In order to continue using PovioKitPromise, you'll need to install is as a [separate dependency](https://github.com/povio/PovioKitNetworking).
+
 ### Migration from versions < 5.0.0
 * [UI] Removed `ActionButton`, `ProfileImageView`.
 

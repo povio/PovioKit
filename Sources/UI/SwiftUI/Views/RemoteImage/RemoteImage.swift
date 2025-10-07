@@ -31,7 +31,6 @@ import SwiftUI
 ///     print("Failed to load image: \(error)")
 ///   }
 /// ```
-@available(iOS 15.0, *)
 public struct RemoteImage<Placeholder: View>: View {
   private let url: URL?
   private let animated: Bool
@@ -79,7 +78,6 @@ public struct RemoteImage<Placeholder: View>: View {
   }
 }
 
-@available(iOS 15.0, *)
 public extension RemoteImage {
   /// Sets a custom placeholder view for the `RemoteImage`.
   ///

@@ -9,7 +9,6 @@
 #if os(iOS)
 import SwiftUI
 
-@available(iOS 15.0, *)
 public struct PhotoPickerModifier: ViewModifier {
   public typealias VoidHandler = () -> Swift.Void
   public typealias ImageHandler = (UIImage) -> Swift.Void
@@ -68,7 +67,6 @@ public struct PhotoPickerModifier: ViewModifier {
   }
 }
 
-@available(iOS 15.0, *)
 public extension View {
   func photoPicker(
     present: Binding<Bool>,

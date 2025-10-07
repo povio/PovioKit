@@ -1,51 +1,21 @@
-// swift-tools-version:5.7
+// swift-tools-version:5.9
 import PackageDescription
 
 let package = Package(
   name: "PovioKit",
   platforms: [
-    .iOS(.v13),
-    .macOS(.v12)
+    .iOS(.v16),
+    .macOS(.v13)
   ],
   products: [
-    .library(
-      name: "PovioKitCore",
-      targets: ["PovioKitCore"]
-    ),
-    .library(
-      name: "PovioKitUtilities", 
-      targets: ["PovioKitUtilities"]
-    ),
-    .library(
-      name: "PovioKitNetworking", 
-      targets: ["PovioKitNetworking"]
-    ),
-    .library(
-      name: "PovioKitPromise", 
-      targets: ["PovioKitPromise"]
-    ),
-    .library(
-      name: "PovioKitUIKit", 
-      targets: ["PovioKitUIKit"]
-    ),
-    .library(
-      name: "PovioKitSwiftUI", 
-      targets: ["PovioKitSwiftUI"]
-    ),
-    .library(
-      name: "PovioKitAsync", 
-      targets: ["PovioKitAsync"]
-    ),
+    .library(name: "PovioKitCore", targets: ["PovioKitCore"]),
+    .library(name: "PovioKitUtilities", targets: ["PovioKitUtilities"]),
+    .library(name: "PovioKitUIKit", targets: ["PovioKitUIKit"]),
+    .library(name: "PovioKitSwiftUI", targets: ["PovioKitSwiftUI"]),
+    .library(name: "PovioKitAsync", targets: ["PovioKitAsync"]),
   ],
   dependencies: [
-    .package(
-      url: "https://github.com/Alamofire/Alamofire", 
-      .upToNextMajor(from: "5.0.0")
-    ),
-    .package(
-      url: "https://github.com/onevcat/Kingfisher",
-      .upToNextMajor(from: "8.0.0")
-    )
+    .package(url: "https://github.com/onevcat/Kingfisher", .upToNextMajor(from: "8.0.0"))
   ],
   targets: [
     .target(
@@ -54,22 +24,6 @@ let package = Package(
         "Kingfisher",
       ],
       path: "Sources/Core",
-      resources: [.copy("../PrivacyInfo.xcprivacy")]
-    ),
-    .target(
-      name: "PovioKitNetworking",
-      dependencies: [
-        "Alamofire",
-        "PovioKitCore",
-        "PovioKitPromise",
-      ],
-      path: "Sources/Networking",
-      resources: [.copy("../PrivacyInfo.xcprivacy")]
-    ),
-    .target(
-      name: "PovioKitPromise",
-      dependencies: [],
-      path: "Sources/PromiseKit",
       resources: [.copy("../PrivacyInfo.xcprivacy")]
     ),
     .target(
@@ -107,8 +61,6 @@ let package = Package(
       name: "Tests",
       dependencies: [
         "PovioKitCore",
-        "PovioKitPromise",
-        "PovioKitNetworking",
         "PovioKitUIKit",
         "PovioKitSwiftUI",
         "PovioKitUtilities",

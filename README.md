@@ -23,8 +23,8 @@
 
 ## Packages
 
-| [Core](Resources/Core) | [Networking](Resources/Networking) | [PromiseKit](Resources/PromiseKit) | [Utilities](Resources/Utilities) | [Async](Resources/Async) | [UIKit](Resources/UI/UIKit) | [SwiftUI](Resources/UI/SwiftUI) | 
-| :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| [Core](Resources/Core) | [Utilities](Resources/Utilities) | [Async](Resources/Async) | [UIKit](Resources/UI/UIKit) | [SwiftUI](Resources/UI/SwiftUI) | 
+| :-: | :-: | :-: | :-: | :-: |
 
 ## Installation
 
@@ -34,8 +34,6 @@
 - Select a desired `Dependency Rule`. Usually "Up to Next Major Version" with "5.1.0".
 - Select "Add Package" button and check one or all given products from the list:
   - *PovioKitCore* (core library)
-  - *PovioKitNetworking* (networking library built on top of Alamofire, has dependency on `PovioKitPromise` package)
-  - *PovioKitPromise* (lightweight promises library)
   - *PovioKitUtilities* (utility components, has dependency on `PovioKitCore` package)
   - *PovioKitAsync* (async/await components)
   - *PovioKitUIKit* (UIKit components, has dependency on `PovioKitCore` and `PovioKitUtilities` package)

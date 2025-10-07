@@ -8,7 +8,6 @@
 
 import SwiftUI
 
-@available(iOS 15.0, *)
 public struct LinearProgressStyle: ProgressViewStyle {
   var trackColor: Color = .gray
   var progressColor: Color = .black
@@ -38,7 +37,6 @@ public struct LinearProgressStyle: ProgressViewStyle {
   }
 }
 
-@available(iOS 15.0, *)
 #Preview {
   VStack {
     ProgressView(value: 0.5)
