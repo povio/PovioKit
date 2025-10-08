@@ -61,7 +61,7 @@ public class MediaPlayer: AVPlayer {
   
   /// The total duration of the current media item in seconds. This duration does not take into account any custom playback interval set.
   public var duration: Double {
-    guard let duration = currentItem?.asset.duration, duration.isValid, !duration.seconds.isNaN else { return 0 }
+    guard let duration = currentItem?.duration, duration.isValid, !duration.seconds.isNaN else { return 0 }
     return duration.seconds
   }
   

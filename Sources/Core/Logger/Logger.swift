@@ -2,8 +2,8 @@
 //  Logger.swift
 //  PovioKit
 //
-//  Created by Borut Tomažin on 04/29/2019.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Created by Borut Tomazin on 04/29/2019.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import OSLog
@@ -26,7 +26,7 @@ public extension Logger {
     case debug
     case all
     
-    var label: String {
+    public var label: String {
       switch self {
       case .info:
         return "INFO"

@@ -3,7 +3,7 @@
 //  PovioKit
 //
 //  Created by Toni Kocjan on 20/07/2019.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import Foundation
@@ -11,6 +11,8 @@ import Foundation
 public struct Delegated<Input, Output> {
   typealias Callback = (Input) -> Output
   private var callback: Callback?
+  
+  public init() {}
   
   public mutating func delegate<Object: AnyObject>(to object: Object, with callback: @escaping (Object?, Input) -> Output) {
     self.callback = { [weak object] input in

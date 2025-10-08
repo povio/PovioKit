@@ -2,8 +2,8 @@
 //  StringTests.swift
 //  PovioKit_Tests
 //
-//  Created by Borut Tomažin on 05/05/2019.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Created by Borut Tomazin on 05/05/2019.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import XCTest

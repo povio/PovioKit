@@ -2,8 +2,8 @@
 //  DispatchTimeInterval+PovioKit.swift
 //  PovioKit
 //
-//  Created by Borut Tomažin on 11/11/2020.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Created by Borut Tomazin on 11/11/2020.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import Foundation

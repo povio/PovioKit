@@ -3,7 +3,7 @@
 //  PovioKit
 //
 //  Created by Borut Tomazin on 02/03/2024.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import SwiftUI

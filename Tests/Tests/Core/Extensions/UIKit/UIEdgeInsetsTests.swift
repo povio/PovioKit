@@ -2,8 +2,8 @@
 //  UIEdgeInsetsTests.swift
 //  PovioKit_Tests
 //
-//  Created by Borut Tomažin on 23/12/2019.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Created by Borut Tomazin on 23/12/2019.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 #if os(iOS)

@@ -3,7 +3,7 @@
 //  PovioKit
 //
 //  Created by Toni Kocjan on 26/04/2019.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 #if os(iOS)
@@ -59,7 +59,7 @@ public final class Builder {
     }
   }
   
-  let text: String
+  public let text: String
   private var attributes = [NSAttributedString.Key: Any]()
   private var rangeAttributes = [(NSAttributedString.Key, Any, NSRange)]()
   

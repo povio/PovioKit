@@ -3,7 +3,7 @@
 //  PovioKit
 //
 //  Created by Toni K. Turk on 22/08/2023.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import Foundation
