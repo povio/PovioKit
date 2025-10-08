@@ -3,19 +3,13 @@
 //  PovioKit
 //
 //  Created by Povio Team on 26/4/2019.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 #if os(iOS)
 import UIKit
 
 public extension UIImage {
-  /// Initializes a symbol image on iOS 13 or image from the given `bundle` for given `name`
-  @available(*, deprecated, message: "This method doesn't bring any good value, therefore it will be removed in future versions.")
-  convenience init?(systemNameOr name: String, in bundle: Bundle? = Bundle.main, compatibleWith traitCollection: UITraitCollection? = nil) {
-    self.init(systemName: name, compatibleWith: traitCollection)
-  }
-  
   /// Tints image with the given color.
   ///
   /// This method creates a new image by applying a color overlay to the original image.

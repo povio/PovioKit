@@ -23,23 +23,21 @@
 
 ## Packages
 
-| [Core](Resources/Core) | [Networking](Resources/Networking) | [PromiseKit](Resources/PromiseKit) | [Utilities](Resources/Utilities) | [Async](Resources/Async) | [UIKit](Resources/UI/UIKit) | [SwiftUI](Resources/UI/SwiftUI) | 
-| :-: | :-: | :-: | :-: | :-: | :-: | :-: |
+| [Core](Resources/Core) | [Utilities](Resources/Utilities) | [Async](Resources/Async) | [UIKit](Resources/UI/UIKit) | [SwiftUI](Resources/UI/SwiftUI) | 
+| :-: | :-: | :-: | :-: | :-: |
 
 ## Installation
 
 ### Swift Package Manager
 - In Xcode, click `File` -> `Add Package Dependencies...`  
 - Insert `https://github.com/poviolabs/PovioKit` in the Search field.
-- Select a desired `Dependency Rule`. Usually "Up to Next Major Version" with "5.1.0".
+- Select a desired `Dependency Rule`. Usually "Up to Next Major Version" with "6.0.0".
 - Select "Add Package" button and check one or all given products from the list:
   - *PovioKitCore* (core library)
-  - *PovioKitNetworking* (networking library built on top of Alamofire, has dependency on `PovioKitPromise` package)
-  - *PovioKitPromise* (lightweight promises library)
-  - *PovioKitUtilities* (utility components, has dependency on `PovioKitCore` package)
+  - *PovioKitUtilities* (utility components)
   - *PovioKitAsync* (async/await components)
-  - *PovioKitUIKit* (UIKit components, has dependency on `PovioKitCore` and `PovioKitUtilities` package)
-  - *PovioKitSwiftUI* (SwiftUI components, has dependency on `PovioKitCore` package)
+  - *PovioKitUIKit* (UIKit components)
+  - *PovioKitSwiftUI* (SwiftUI components)
 - Select "Add Package" again and you are done.
 
 ### Migration

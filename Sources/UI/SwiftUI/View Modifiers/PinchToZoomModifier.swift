@@ -3,14 +3,13 @@
 //  PovioKit
 //
 //  Created by Yll Fejziu on 13/05/2024.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 #if os(iOS)
 import SwiftUI
 
 /// https://stackoverflow.com/a/59878898
-@available(iOS 15.0, *)
 public struct PinchToZoomModifier: ViewModifier {
   @StateObject private var viewModel = PinchZoomViewModel()
 
@@ -25,7 +24,6 @@ public struct PinchToZoomModifier: ViewModifier {
   }
 }
 
-@available(iOS 15.0, *)
 public extension View {
   func pinchToZoom() -> some View {
     self.modifier(PinchToZoomModifier())

@@ -3,7 +3,7 @@
 //  PovioKit
 //
 //  Created by Borut Tomazin on 22/05/2024.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 #if canImport(UIKit)
@@ -20,7 +20,6 @@ public enum AppInfo {
   }
   
   /// Opens `Notifications` section in `Settings` app.
-  @available(iOS 16.0, *)
   public static func openNotificationSettings() {
     URL(string: UIApplication.openNotificationSettingsURLString).map { openUrl($0) }
   }

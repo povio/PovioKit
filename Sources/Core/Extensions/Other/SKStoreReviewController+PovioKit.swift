@@ -2,8 +2,8 @@
 //  SKStoreReviewController+PovioKit.swift
 //  PovioKit
 //
-//  Created by Borut Tomažin on 23/06/2022.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Created by Borut Tomazin on 23/06/2022.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 #if os(iOS)

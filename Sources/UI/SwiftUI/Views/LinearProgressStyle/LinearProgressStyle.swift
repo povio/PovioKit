@@ -3,12 +3,11 @@
 //  PovioKit
 //
 //  Created by Borut Tomazin on 02/03/2024.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import SwiftUI
 
-@available(iOS 15.0, *)
 public struct LinearProgressStyle: ProgressViewStyle {
   var trackColor: Color = .gray
   var progressColor: Color = .black
@@ -38,7 +37,6 @@ public struct LinearProgressStyle: ProgressViewStyle {
   }
 }
 
-@available(iOS 15.0, *)
 #Preview {
   VStack {
     ProgressView(value: 0.5)

@@ -2,8 +2,8 @@
 //  Logger.swift
 //  PovioKit
 //
-//  Created by Borut Tomažin on 04/29/2019.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Created by Borut Tomazin on 04/29/2019.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import OSLog
@@ -26,7 +26,7 @@ public extension Logger {
     case debug
     case all
     
-    var label: String {
+    public var label: String {
       switch self {
       case .info:
         return "INFO"
@@ -85,26 +85,21 @@ private extension Logger {
       messagePrint += "\(nl)\(groupedParams)"
     }
     
-    if #available(iOS 14.0, macOS 12.0, *) {
-      let category = "\(fileName) - \(function) - line \(line)"
-      let logger = os.Logger(subsystem: Bundle.main.bundleIdentifier ?? "povioKit.logger", category: category)
-      switch level {
-      case .none:
-        break
-      case .error:
-        logger.error("\(messagePrint)")
-      case .warn:
-        logger.warning("\(messagePrint)")
-      case .info:
-        logger.info("\(messagePrint)")
-      case .debug:
-        logger.debug("\(messagePrint)")
-      case .all:
-        logger.log("\(messagePrint)")
-      }
-    } else {
-      debugPrint(messagePrint)
-      debugPrint()
+    let category = "\(fileName) - \(function) - line \(line)"
+    let logger = os.Logger(subsystem: Bundle.main.bundleIdentifier ?? "povioKit.logger", category: category)
+    switch level {
+    case .none:
+      break
+    case .error:
+      logger.error("\(messagePrint)")
+    case .warn:
+      logger.warning("\(messagePrint)")
+    case .info:
+      logger.info("\(messagePrint)")
+    case .debug:
+      logger.debug("\(messagePrint)")
+    case .all:
+      logger.log("\(messagePrint)")
     }
   }
 }

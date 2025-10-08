@@ -3,12 +3,11 @@
 //  PovioKit
 //
 //  Created by Borut Tomazin on 10/02/2024.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import SwiftUI
 
-@available(iOS 15.0, *)
 public struct MeasureSizeModifier: ViewModifier {
   public typealias SizeHandler = (CGSize) -> Void
   let onSize: SizeHandler
@@ -35,7 +34,6 @@ public struct MeasureSizeModifier: ViewModifier {
   }
 }
 
-@available(iOS 15, *)
 public extension View {
   /// Measure view size everytime it changes
   func measureSize(_ handler: @escaping MeasureSizeModifier.SizeHandler) -> some View {

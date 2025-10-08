@@ -3,18 +3,18 @@
 //  PovioKit
 //
 //  Created by Marko Mijatovic on 04/07/2022.
-//  Copyright © 2024 Povio Labs. All rights reserved.
+//  Copyright © 2025 Povio Labs. All rights reserved.
 //
 
 import Foundation
 
-extension Comparable {
+public extension Comparable {
   func clamped(to limits: ClosedRange<Self>) -> Self {
     return min(max(self, limits.lowerBound), limits.upperBound)
   }
 }
 
-extension Double {
+public extension Double {
   /**
    Formats the Double value as a currency string using the provided currencyCode.
    - Note: We were using the explanation found [here](https://www.swiftbysundell.com/articles/formatting-numbers-in-swift/#domain-specific-numbers)

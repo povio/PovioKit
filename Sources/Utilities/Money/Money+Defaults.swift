@@ -3,7 +3,7 @@
 //  PovioKit
 //
 //  Created by Toni K. Turk on 19/04/2022.
-//  Copyright © 2024 Povio Labs. All rights reserved.
+//  Copyright © 2025 Povio Labs. All rights reserved.
 //
 
 import Foundation
@@ -13,6 +13,8 @@ public extension Money {
     public var precision = 2
     public var currency = Currency.usd
     public var locale = Locale.current
+    
+    public init() {}
   }
 }
 

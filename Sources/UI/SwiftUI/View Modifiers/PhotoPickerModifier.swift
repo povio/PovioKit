@@ -3,13 +3,12 @@
 //  PovioKit
 //
 //  Created by Borut Tomazin on 10/02/2024.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 #if os(iOS)
 import SwiftUI
 
-@available(iOS 15.0, *)
 public struct PhotoPickerModifier: ViewModifier {
   public typealias VoidHandler = () -> Swift.Void
   public typealias ImageHandler = (UIImage) -> Swift.Void
@@ -68,7 +67,6 @@ public struct PhotoPickerModifier: ViewModifier {
   }
 }
 
-@available(iOS 15.0, *)
 public extension View {
   func photoPicker(
     present: Binding<Bool>,

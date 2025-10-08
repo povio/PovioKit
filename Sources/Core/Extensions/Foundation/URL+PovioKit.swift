@@ -3,7 +3,7 @@
 //  PovioKit
 //
 //  Created by Povio Team on 26/04/2019.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import Foundation
@@ -63,6 +63,8 @@ public extension URL {
   }
 }
 
+extension URL: @retroactive ExpressibleByExtendedGraphemeClusterLiteral {}
+extension URL: @retroactive ExpressibleByUnicodeScalarLiteral {}
 extension Foundation.URL: Swift.ExpressibleByStringLiteral {
   /// A failable initializer that allows a `URL` object to be created from a string literal.
   ///

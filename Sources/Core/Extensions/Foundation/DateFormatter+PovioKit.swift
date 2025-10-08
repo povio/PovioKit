@@ -3,12 +3,12 @@
 //  PovioKit
 //
 //  Created by Borut Tomazin on 02/10/2024.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import Foundation
 
-extension DateFormatter {
+public extension DateFormatter {
   /// Format a time in a 12-hour format with AM/PM designation.
   ///
   /// `9:41 PM`

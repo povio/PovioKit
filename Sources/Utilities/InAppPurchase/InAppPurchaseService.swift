@@ -3,14 +3,13 @@
 //  PovioKit
 //
 //  Created by Marko Mijatovic on 20/01/2023.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import Foundation
 import PovioKitCore
 import StoreKit
 
-@available(iOS 15.0, *)
 public final class InAppPurchaseService: NSObject {
   public typealias IAPProduct = String
   public typealias IAPReceipt = String
@@ -39,7 +38,6 @@ public final class InAppPurchaseService: NSObject {
 }
 
 // MARK: - Public
-@available(iOS 15.0, *)
 extension InAppPurchaseService {
   /// Purchase product with options
   /// - Parameters:
@@ -145,7 +143,6 @@ extension InAppPurchaseService {
 }
 
 // MARK: - Private
-@available(iOS 15.0, *)
 private extension InAppPurchaseService {
   func listenForTransactions() -> Task<Void, Error> {
     return Task.detached {

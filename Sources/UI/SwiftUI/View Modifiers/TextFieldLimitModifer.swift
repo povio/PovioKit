@@ -3,12 +3,11 @@
 //  PovioKit
 //
 //  Created by Dejan Skledar on 29/12/2023.
-//  Copyright © 2024 Povio Inc. All rights reserved.
+//  Copyright © 2025 Povio Inc. All rights reserved.
 //
 
 import SwiftUI
 
-@available(iOS 15.0, *)
 public struct TextFieldLimitModifer: ViewModifier {
   @Binding var text: String
   let limit: Int
@@ -22,7 +21,6 @@ public struct TextFieldLimitModifer: ViewModifier {
   }
 }
 
-@available(iOS 15.0, *)
 public extension View {
   /// Limit input length
   func limitInput(text: Binding<String>, limit: Int) -> some View {
