@@ -5,6 +5,7 @@
 //  Created by Borut Tomazin on 26. 9. 24.
 //
 
+#if os(iOS)
 import UIKit
 import Kingfisher
 
@@ -110,3 +111,4 @@ public extension UIImage {
     cache.clearCache()
   }
 }
+#endif

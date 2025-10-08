@@ -85,26 +85,21 @@ private extension Logger {
       messagePrint += "\(nl)\(groupedParams)"
     }
     
-    if #available(iOS 14.0, macOS 12.0, *) {
-      let category = "\(fileName) - \(function) - line \(line)"
-      let logger = os.Logger(subsystem: Bundle.main.bundleIdentifier ?? "povioKit.logger", category: category)
-      switch level {
-      case .none:
-        break
-      case .error:
-        logger.error("\(messagePrint)")
-      case .warn:
-        logger.warning("\(messagePrint)")
-      case .info:
-        logger.info("\(messagePrint)")
-      case .debug:
-        logger.debug("\(messagePrint)")
-      case .all:
-        logger.log("\(messagePrint)")
-      }
-    } else {
-      debugPrint(messagePrint)
-      debugPrint()
+    let category = "\(fileName) - \(function) - line \(line)"
+    let logger = os.Logger(subsystem: Bundle.main.bundleIdentifier ?? "povioKit.logger", category: category)
+    switch level {
+    case .none:
+      break
+    case .error:
+      logger.error("\(messagePrint)")
+    case .warn:
+      logger.warning("\(messagePrint)")
+    case .info:
+      logger.info("\(messagePrint)")
+    case .debug:
+      logger.debug("\(messagePrint)")
+    case .all:
+      logger.log("\(messagePrint)")
     }
   }
 }

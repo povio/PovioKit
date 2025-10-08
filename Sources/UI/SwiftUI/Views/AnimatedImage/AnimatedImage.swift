@@ -5,6 +5,7 @@
 //  Created by Borut Tomazin on 25/02/2025.
 //
 
+#if os(iOS)
 import Kingfisher
 import SwiftUI
 
@@ -163,3 +164,4 @@ public extension AnimatedImage {
     )
   }
 }
+#endif

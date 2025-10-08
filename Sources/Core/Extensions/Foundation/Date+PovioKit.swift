@@ -51,7 +51,7 @@ public extension Date {
   ///
   /// - Returns: An optional Date representing the end of the week, or nil if it cannot be determined.
   var endOfWeek: Date? {
-    guard let startOfWeek = Date().startOfWeek else { return nil }
+    guard let startOfWeek else { return nil }
     return calendar.date(byAdding: .day, value: 6, to: startOfWeek)
   }
 }
