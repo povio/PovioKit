@@ -1,0 +1,46 @@
+{
+  "name": "Povio Swift Package Collection",
+  "overview": "A collection of Swift packages maintained by Povio Inc., including modular utilities for iOS and macOS development.",
+  "formatVersion": "1.0",
+  "revision": 1,
+  "generatedAt": "2025-10-09T00:00:00Z",
+  "generatedBy": {
+    "name": "Povio Inc."
+  },
+  "keywords": [
+    "swift",
+    "ios",
+    "macos",
+    "utilities",
+    "swiftui",
+    "uikit",
+    "networking",
+    "authentication",
+    "oauth",
+    "google",
+    "facebook"
+  ],
+  "packages": [
+    {
+      "url": "https://github.com/povio/PovioKit",
+      "summary": "A modular library collection for Swift development, providing Core utilities, UIKit/SwiftUI components, and async/await helpers."
+    },
+    {
+      "url": "https://github.com/povio/PovioKitNetworking",
+      "summary": "A networking library."
+    },
+    {
+      "url": "https://github.com/povio/PovioKitAuth",
+      "summary": "Auth packages with support for social providers."
+    },
+    {
+      "url": "https://github.com/povio/PovioKitAuthGoogle",
+      "summary": "An auth provider for social login with Google."
+    },
+    {
+      "url": "https://github.com/povio/PovioKitAuthFacebook",
+      "summary": "An auth provider for social login with Facebook."
+    }
+  ]
+}
+
