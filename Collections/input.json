@@ -1,0 +1,40 @@
+{
+  "name": "Povio Swift Packages",
+  "overview": "A collection of Swift packages maintained by Povio Inc.",
+  "author": {
+    "name": "Povio Inc."
+  },
+  "packages": [
+    {
+      "url": "https://github.com/povio/PovioKit.git",
+      "summary": "A modular library collection for Swift development, providing Core utilities, UIKit/SwiftUI components, and async/await helpers.",
+      "keywords": ["swift", "ios", "macos", "utilities", "swiftui", "uikit"],
+      "readmeURL": "https://raw.githubusercontent.com/povio/PovioKit/develop/README.md"
+    },
+    {
+      "url": "https://github.com/povio/PovioKitNetworking.git",
+      "summary": "A networking library for Swift.",
+      "keywords": ["networking", "swift", "ios", "macos"],
+      "readmeURL": "https://raw.githubusercontent.com/povio/PovioKitNetworking/main/README.md"
+    },
+    {
+      "url": "https://github.com/povio/PovioKitAuth.git",
+      "summary": "Authentication framework with support for social providers.",
+      "keywords": ["authentication", "oauth", "swift"],
+      "readmeURL": "https://raw.githubusercontent.com/povio/PovioKitAuth/main/README.md"
+    },
+    {
+      "url": "https://github.com/povio/PovioKitAuthGoogle.git",
+      "summary": "Google authentication provider for PovioKitAuth.",
+      "keywords": ["authentication", "google", "oauth", "swift"],
+      "readmeURL": "https://raw.githubusercontent.com/povio/PovioKitAuthGoogle/main/README.md"
+    },
+    {
+      "url": "https://github.com/povio/PovioKitAuthFacebook.git",
+      "summary": "Facebook authentication provider for PovioKitAuth.",
+      "keywords": ["authentication", "facebook", "oauth", "swift"],
+      "readmeURL": "https://raw.githubusercontent.com/povio/PovioKitAuthFacebook/main/README.md"
+    }
+  ]
+}
+
