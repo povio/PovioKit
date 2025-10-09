@@ -40,6 +40,28 @@
   - *PovioKitSwiftUI* (SwiftUI components)
 - Select "Add Package" again and you are done.
 
+### Package Collection
+
+Discover all Povio packages in one place using our Swift Package Collection!
+
+**Add via Xcode:**
+1. Open Xcode → Settings → Swift Packages
+2. Click the **+** button
+3. Enter: `https://raw.githubusercontent.com/povio/PovioKit/master/Collections/poviokit.json`
+4. Click **Add**
+
+**Add via Command Line:**
+```bash
+swift package-collection add https://raw.githubusercontent.com/povio/PovioKit/master/Collections/poviokit.json
+```
+
+The collection includes:
+- PovioKit (Core, Utilities, UIKit, SwiftUI, Async)
+- PovioKitNetworking (Networking, PromiseKit)
+- PovioKitAuth (Core, Apple, LinkedIn)
+- PovioKitAuthGoogle
+- PovioKitAuthFacebook
+
 ### Migration
 
 Please read the [Migration](MIGRATING.md) document.
