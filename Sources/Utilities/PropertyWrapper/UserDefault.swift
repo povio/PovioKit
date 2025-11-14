@@ -144,10 +144,10 @@ private extension UserDefault {
 }
 
 public class UserDefaultKey<Value: Codable> {
-  let key: String
-  let defaultValue: Value
-  let storage: UserDefaults
-  let encoder: JSONEncoder
+  public let key: String
+  public let defaultValue: Value
+  public let storage: UserDefaults
+  public let encoder: JSONEncoder
   
   init(
     key: String,
