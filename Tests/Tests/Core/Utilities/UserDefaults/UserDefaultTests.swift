@@ -29,6 +29,10 @@ class UserDefaultTests: XCTestCase {
     userDefaults.removeObject(forKey: Defaults.testArrayKey)
     userDefaults.removeObject(forKey: Defaults.testDictionaryKey)
     userDefaults.removeObject(forKey: Defaults.testComplexMigrationKey)
+    userDefaults.removeObject(forKey: Defaults.testEnabledFeatureKey)
+    userDefaults.removeObject(forKey: Defaults.testDefaultScoreKey)
+    userDefaults.removeObject(forKey: Defaults.testDefaultPiKey)
+    userDefaults.removeObject(forKey: Defaults.testDefaultEulerKey)
     userDefaults.removeObject(forKey: CustomDefaults.customKey)
   }
   
@@ -467,6 +471,52 @@ class UserDefaultTests: XCTestCase {
     // Then - should correctly return 0, not default value
     XCTAssertEqual(value, 0)
   }
+  
+  // MARK: - Default Value Tests (Missing Key)
+  
+  func testBoolMissingKeyReturnsDefaultValue() {
+    // Given - key doesn't exist (cleaned up in tearDown)
+    // Default value is true (different from UserDefaults' false)
+    
+    // When
+    let value = Defaults.enabledFeature
+    
+    // Then - should return custom defaultValue (true), not UserDefaults default (false)
+    XCTAssertTrue(value)
+  }
+  
+  func testIntMissingKeyReturnsDefaultValue() {
+    // Given - key doesn't exist (cleaned up in tearDown)
+    // Default value is 42 (different from UserDefaults' 0)
+    
+    // When
+    let value = Defaults.defaultScore
+    
+    // Then - should return custom defaultValue (42), not UserDefaults default (0)
+    XCTAssertEqual(value, 42)
+  }
+  
+  func testDoubleMissingKeyReturnsDefaultValue() {
+    // Given - key doesn't exist (cleaned up in tearDown)
+    // Default value is 3.14 (different from UserDefaults' 0.0)
+    
+    // When
+    let value = Defaults.defaultPi
+    
+    // Then - should return custom defaultValue (3.14), not UserDefaults default (0.0)
+    XCTAssertEqual(value, 3.14, accuracy: 0.001)
+  }
+  
+  func testFloatMissingKeyReturnsDefaultValue() {
+    // Given - key doesn't exist (cleaned up in tearDown)
+    // Default value is 2.71 (different from UserDefaults' 0.0)
+    
+    // When
+    let value = Defaults.defaultEuler
+    
+    // Then - should return custom defaultValue (2.71), not UserDefaults default (0.0)
+    XCTAssertEqual(value, 2.71, accuracy: 0.001)
+  }
 }
 
 extension UserDefaultTests {
@@ -485,6 +535,10 @@ extension UserDefaultTests {
     static var testArrayKey = "test_array_key"
     static var testDictionaryKey = "test_dictionary_key"
     static var testComplexMigrationKey = "test_complex_migration_key"
+    static var testEnabledFeatureKey = "test_enabled_feature_key"
+    static var testDefaultScoreKey = "test_default_score_key"
+    static var testDefaultPiKey = "test_default_pi_key"
+    static var testDefaultEulerKey = "test_default_euler_key"
     
     @UserDefault(defaultValue: false, key: testBoolKey)
     static var isAuthenticated: Bool
@@ -527,6 +581,19 @@ extension UserDefaultTests {
     
     @UserDefault(defaultValue: TestDataModel(id: "default", number: 0), key: testComplexMigrationKey)
     static var complexMigration: TestDataModel
+    
+    // Properties with non-zero/non-false defaults to test missing key behavior
+    @UserDefault(defaultValue: true, key: testEnabledFeatureKey)
+    static var enabledFeature: Bool
+    
+    @UserDefault(defaultValue: 42, key: testDefaultScoreKey)
+    static var defaultScore: Int
+    
+    @UserDefault(defaultValue: 3.14, key: testDefaultPiKey)
+    static var defaultPi: Double
+    
+    @UserDefault(defaultValue: 2.71, key: testDefaultEulerKey)
+    static var defaultEuler: Float
   }
   
   struct CustomDefaults {

@@ -122,14 +122,19 @@ private extension UserDefault {
   }
   
   func readPrimitive() -> Value? {
+    // For primitive types that never return nil (Bool, Int, Double, Float),
+    // we need to check if the key exists first, otherwise we'd return
+    // the UserDefaults default (false/0) instead of our defaultValue
+    let keyExists = storage.object(forKey: keyObject.key) != nil
+    
     if Value.self is Bool.Type {
-      return storage.bool(forKey: keyObject.key) as? Value
+      return keyExists ? storage.bool(forKey: keyObject.key) as? Value : nil
     } else if Value.self is Int.Type {
-      return storage.integer(forKey: keyObject.key) as? Value
+      return keyExists ? storage.integer(forKey: keyObject.key) as? Value : nil
     } else if Value.self is Double.Type {
-      return storage.double(forKey: keyObject.key) as? Value
+      return keyExists ? storage.double(forKey: keyObject.key) as? Value : nil
     } else if Value.self is Float.Type {
-      return storage.float(forKey: keyObject.key) as? Value
+      return keyExists ? storage.float(forKey: keyObject.key) as? Value : nil
     } else if Value.self is String.Type {
       return storage.string(forKey: keyObject.key) as? Value
     } else if Value.self is Data.Type {
