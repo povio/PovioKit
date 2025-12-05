@@ -38,6 +38,22 @@ import SwiftUI
 /// RemoteImage(url: URL(string: "https://example.com/image.jpg"))
 ///   .processor(processor)
 /// ```
+///
+/// ## Example with downsampling and JPEG compression
+/// ```swift
+/// let processor = DownsamplingImageProcessor(size: CGSize(width: 1200, height: 600))
+///     |> JPEGImageProcessor(compressionQuality: 0.8)
+/// RemoteImage(url: URL(string: "https://example.com/image.jpg"))
+///   .processor(processor)
+/// ```
+///
+/// ## Example with downsampling and HEIC compression (best compression)
+/// ```swift
+/// let processor = DownsamplingImageProcessor(size: CGSize(width: 1200, height: 600))
+///     |> HEICImageProcessor(compressionQuality: 0.8)
+/// RemoteImage(url: URL(string: "https://example.com/image.jpg"))
+///   .processor(processor)
+/// ```
 public struct RemoteImage<Placeholder: View>: View {
   private let url: URL?
   private let animated: Bool
@@ -123,7 +139,8 @@ public extension RemoteImage {
   /// Sets a Kingfisher image processor for the `RemoteImage`.
   ///
   /// - Parameter processor: An `ImageProcessor` instance to process the image before display.
-  ///   Common processors include `DownsamplingImageProcessor`, `RoundCornerImageProcessor`, etc.
+  ///   Common processors include `DownsamplingImageProcessor`, `RoundCornerImageProcessor`,
+  ///   `JPEGImageProcessor`, `HEICImageProcessor`, etc. Processors can be chained using the `|>` operator.
   /// - Returns: A new `RemoteImage` instance with the specified processor.
   func processor(_ processor: ImageProcessor?) -> RemoteImage {
     RemoteImage(
