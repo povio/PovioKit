@@ -125,16 +125,27 @@ private extension UserDefault {
     // For primitive types that never return nil (Bool, Int, Double, Float),
     // we need to check if the key exists first, otherwise we'd return
     // the UserDefaults default (false/0) instead of our defaultValue
-    let keyExists = storage.object(forKey: keyObject.key) != nil
+    let storedObject = storage.object(forKey: keyObject.key)
+    let keyExists = storedObject != nil
+    
+    // For Bool, Int, Double, Float: if stored value is Data, it might be JSON-encoded
+    // from a previous version. Skip primitive reading and let JSON decoding handle it.
+    // Note: We only check this for types where storage.bool/integer/double/float(forKey:)
+    // would return a wrong default (false/0) instead of nil when Data is stored.
+    let storedAsData = storedObject is Data
     
     if Value.self is Bool.Type {
-      return keyExists ? storage.bool(forKey: keyObject.key) as? Value : nil
+      guard keyExists && !storedAsData else { return nil }
+      return storage.bool(forKey: keyObject.key) as? Value
     } else if Value.self is Int.Type {
-      return keyExists ? storage.integer(forKey: keyObject.key) as? Value : nil
+      guard keyExists && !storedAsData else { return nil }
+      return storage.integer(forKey: keyObject.key) as? Value
     } else if Value.self is Double.Type {
-      return keyExists ? storage.double(forKey: keyObject.key) as? Value : nil
+      guard keyExists && !storedAsData else { return nil }
+      return storage.double(forKey: keyObject.key) as? Value
     } else if Value.self is Float.Type {
-      return keyExists ? storage.float(forKey: keyObject.key) as? Value : nil
+      guard keyExists && !storedAsData else { return nil }
+      return storage.float(forKey: keyObject.key) as? Value
     } else if Value.self is String.Type {
       return storage.string(forKey: keyObject.key) as? Value
     } else if Value.self is Data.Type {

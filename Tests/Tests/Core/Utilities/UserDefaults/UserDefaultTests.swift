@@ -350,6 +350,41 @@ class UserDefaultTests: XCTestCase {
   
   // MARK: - Migration Tests
   
+  func testMigrationForBoolStoredAsJsonData() {
+    // Given - simulate old format storage where Bool was JSON-encoded
+    // This is the scenario: before update, Bool `true` was stored as JSON Data
+    let boolValue = true
+    if let encoded = try? JSONEncoder().encode(boolValue) {
+      userDefaults.set(encoded, forKey: Defaults.testBoolKey)
+    }
+    
+    // Verify it's stored as Data (not native Bool)
+    XCTAssertNotNil(userDefaults.data(forKey: Defaults.testBoolKey))
+    
+    // When - read via UserDefault wrapper (should correctly decode JSON Data)
+    let readValue = Defaults.isAuthenticated
+    
+    // Then - should return true, not false (the UserDefaults default for non-bool data)
+    XCTAssertTrue(readValue, "Bool stored as JSON Data should be correctly migrated to true")
+  }
+  
+  func testMigrationForIntStoredAsJsonData() {
+    // Given - simulate old format storage where Int was JSON-encoded
+    let intValue = 42
+    if let encoded = try? JSONEncoder().encode(intValue) {
+      userDefaults.set(encoded, forKey: Defaults.testIntKey)
+    }
+    
+    // Verify it's stored as Data
+    XCTAssertNotNil(userDefaults.data(forKey: Defaults.testIntKey))
+    
+    // When - read via UserDefault wrapper
+    let readValue = Defaults.userAge
+    
+    // Then - should return 42, not 0
+    XCTAssertEqual(readValue, 42, "Int stored as JSON Data should be correctly migrated")
+  }
+  
   func testMigrationForComplexType() {
     // Given - simulate old format storage (direct object storage)
     let oldValue = TestDataModel(id: "old-id", number: 999)
