@@ -48,4 +48,4 @@ guard validatableTextField.isValid else { return }
 Validation will be triggered when `validatableTextField.isValid` is called. If validation doesn't pass, the error message will automatically display under the textfield.
 
 ## Source code
-You can find source code [here](/Sources/UI/UIKit/TextField/TextField.swift).
+You can find source code [here](/Sources/UI/UIKit/Views/TextField/TextField.swift).

@@ -6,4 +6,4 @@ A `UIView` subclass providing interface for managing gradient. Adding gradient b
 TODO: usage through examples
 
 ## Source code
-You can find source code [here](/Sources/UI/UIKit/GradientView/GradientView.swift).
+You can find source code [here](/Sources/UI/UIKit/Views/GradientView/GradientView.swift).

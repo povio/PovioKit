@@ -150,4 +150,8 @@ print(money2 < money3) // true
 ```
 
 ## Source code
-You can find source code [here](/Sources/Utilities/Money).
+You can find source code here:
+- [Money](/Sources/Utilities/Money/Money.swift)
+- [Money+Currency](/Sources/Utilities/Money/Money+Currency.swift)
+- [Money+Defaults](/Sources/Utilities/Money/Money+Defaults.swift)
+- [Money+Extensions](/Sources/Utilities/Money/Money+Extensions.swift)

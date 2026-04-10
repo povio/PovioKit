@@ -76,4 +76,6 @@ public final class FacebookSetupProcess: StartupProcess {
 ```
 
 ## Source code
-You can find source code [here](/Sources/Utilities/StartupService).
+You can find source code here:
+- [StartupProcess](/Sources/Utilities/StartupService/StartupProcess.swift)
+- [StartupProcessService](/Sources/Utilities/StartupService/StartupProcessService.swift)

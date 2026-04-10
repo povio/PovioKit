@@ -23,8 +23,8 @@
 
 ## Packages
 
-| [Core](Resources/Core) | [Utilities](Resources/Utilities) | [Async](Resources/Async) | [UIKit](Resources/UI/UIKit) | [SwiftUI](Resources/UI/SwiftUI) | 
-| :-: | :-: | :-: | :-: | :-: |
+| [Core](Resources/Core) | [Utilities](Resources/Utilities) | [Async](Resources/Async) | [UIKit](Resources/UI/UIKit) | [SwiftUI](Resources/UI/SwiftUI) | [AppKit](Resources/UI/AppKit) |
+| :-: | :-: | :-: | :-: | :-: | :-: |
 
 ## Installation
 
@@ -38,6 +38,7 @@
   - *PovioKitAsync* (async/await components)
   - *PovioKitUIKit* (UIKit components)
   - *PovioKitSwiftUI* (SwiftUI components)
+  - *PovioKitAppKit* (AppKit components)
 - Select "Add Package" again and you are done.
 
 ### Package Collection
@@ -56,7 +57,7 @@ swift package-collection add https://raw.githubusercontent.com/povio/PovioKit/ma
 ```
 
 The collection includes:
-- PovioKit (Core, Utilities, UIKit, SwiftUI, Async)
+- PovioKit (Core, Utilities, UIKit, SwiftUI, AppKit, Async)
 - PovioKitNetworking (Networking, PromiseKit)
 - PovioKitAuth (Core, Apple, LinkedIn)
 - PovioKitAuthGoogle
