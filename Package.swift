@@ -12,6 +12,7 @@ let package = Package(
     .library(name: "PovioKitUtilities", targets: ["PovioKitUtilities"]),
     .library(name: "PovioKitUIKit", targets: ["PovioKitUIKit"]),
     .library(name: "PovioKitSwiftUI", targets: ["PovioKitSwiftUI"]),
+    .library(name: "PovioKitAppKit", targets: ["PovioKitAppKit"]),
     .library(name: "PovioKitAsync", targets: ["PovioKitAsync"]),
   ],
   dependencies: [
@@ -20,9 +21,6 @@ let package = Package(
   targets: [
     .target(
       name: "PovioKitCore",
-      dependencies: [
-        "Kingfisher",
-      ],
       path: "Sources/Core",
       resources: [.copy("../PrivacyInfo.xcprivacy")]
     ),
@@ -31,6 +29,7 @@ let package = Package(
       dependencies: [
         "PovioKitCore",
         "PovioKitUtilities",
+        "Kingfisher"
       ],
       path: "Sources/UI/UIKit",
       resources: [.copy("../../PrivacyInfo.xcprivacy")]
@@ -39,8 +38,17 @@ let package = Package(
       name: "PovioKitSwiftUI",
       dependencies: [
         "PovioKitCore",
+        "Kingfisher"
       ],
       path: "Sources/UI/SwiftUI",
+      resources: [.copy("../../PrivacyInfo.xcprivacy")]
+    ),
+    .target(
+      name: "PovioKitAppKit",
+      dependencies: [
+        "PovioKitCore",
+      ],
+      path: "Sources/UI/AppKit",
       resources: [.copy("../../PrivacyInfo.xcprivacy")]
     ),
     .target(
