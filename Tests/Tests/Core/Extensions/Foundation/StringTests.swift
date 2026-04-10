@@ -68,4 +68,19 @@ class StringTests: XCTestCase {
 
     XCTAssertEqual(result, expectedAttributedString)
   }
+  
+  func testLines() {
+    let value = "first\nsecond\r\nthird"
+    XCTAssertEqual(value.lines.map(String.init), ["first", "second", "third"])
+  }
+  
+  func testContainsEmoji() {
+    XCTAssertTrue("Hello 👋".containsEmoji)
+    XCTAssertFalse("Hello".containsEmoji)
+  }
+  
+  func testInitials() {
+    XCTAssertEqual("John Doe".initials, "JD")
+    XCTAssertEqual("Elena Wayne Gomez".initials, "EG")
+  }
 }

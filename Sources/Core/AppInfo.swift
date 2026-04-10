@@ -45,14 +45,26 @@ public enum AppInfo {
     if inSafari, #available(iOS 17.5, *) {
       targetUrl = URL(string: "x-safari-\(url.absoluteString)")!
     }
-    guard UIApplication.shared.canOpenURL(targetUrl) else { return }
-    UIApplication.shared.open(targetUrl, options: [:])
+    let canOpen = AppInfoURLHandlerStore.canOpenUrlHandlerForTesting ?? { target in
+      UIApplication.shared.canOpenURL(target)
+    }
+    let open = AppInfoURLHandlerStore.openUrlHandlerForTesting ?? { target in
+      UIApplication.shared.open(target, options: [:])
+    }
+    guard canOpen(targetUrl) else { return }
+    open(targetUrl)
 #elseif os(macOS)
     if inSafari, let safariUrl = URL(string: "safari://\(url.absoluteString)") {
       targetUrl = safariUrl
     }
-    guard NSWorkspace.shared.urlForApplication(toOpen: targetUrl) != nil else { return }
-    NSWorkspace.shared.open(targetUrl)
+    let canOpen = AppInfoURLHandlerStore.canOpenUrlHandlerForTesting ?? { target in
+      NSWorkspace.shared.urlForApplication(toOpen: target) != nil
+    }
+    let open = AppInfoURLHandlerStore.openUrlHandlerForTesting ?? { target in
+      NSWorkspace.shared.open(target)
+    }
+    guard canOpen(targetUrl) else { return }
+    open(targetUrl)
 #endif
   }
   
@@ -75,4 +87,13 @@ public enum AppInfo {
   public static var version: String {
     Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "/"
   }
+}
+
+/// Internal test seam for overriding URL open behavior.
+///
+/// Tests can inject handlers to avoid external side effects (opening App Store,
+/// Phone app, or browser) while still verifying URL-building behavior.
+enum AppInfoURLHandlerStore {
+  static var canOpenUrlHandlerForTesting: ((URL) -> Bool)?
+  static var openUrlHandlerForTesting: ((URL) -> Void)?
 }
