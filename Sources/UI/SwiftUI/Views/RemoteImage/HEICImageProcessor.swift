@@ -3,7 +3,7 @@
 //  PovioKit
 //
 //  Created by Borut Tomazin on 25/02/2025.
-//  Copyright © 2025 Povio Inc. All rights reserved.
+//  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
 import Kingfisher

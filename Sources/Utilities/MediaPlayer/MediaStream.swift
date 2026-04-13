@@ -3,6 +3,7 @@
 //  
 //
 //  Created by Dejan Skledar on 04/08/2023.
+//  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
 import Foundation

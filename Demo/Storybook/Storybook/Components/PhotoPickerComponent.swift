@@ -3,6 +3,7 @@
 //  Storybook
 //
 //  Created by Borut Tomazin on 06/01/2025.
+//  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
 import SwiftUI

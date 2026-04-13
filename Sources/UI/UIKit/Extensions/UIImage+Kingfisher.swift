@@ -3,6 +3,7 @@
 //  PovioKit
 //
 //  Created by Borut Tomazin on 26. 9. 24.
+//  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
 #if os(iOS)

@@ -3,6 +3,7 @@
 //  Alamofire
 //
 //  Created by Toni Kocjan on 16/02/2021.
+//  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
 import Foundation

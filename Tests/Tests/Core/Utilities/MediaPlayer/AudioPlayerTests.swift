@@ -1,6 +1,7 @@
 //
 //  AudioPlayerTests.swift
 //  PovioKit_Tests
+//  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
 import XCTest
