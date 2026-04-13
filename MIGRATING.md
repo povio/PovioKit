@@ -1,5 +1,10 @@
 ## Migration Guides
 
+### Migration from versions < 6.2.0
+* [Package] Added a separate `PovioKitAppKit` product. If you need AppKit APIs, include this product in your package selection.
+* [Core] `Kingfisher` is no longer a transitive dependency of `PovioKitCore`.
+* [UI] Platform-specific extensions are now grouped in their dedicated UI modules. If you used UIKit, SwiftUI, or AppKit extensions via `PovioKitCore`, import `PovioKitUIKit`, `PovioKitSwiftUI`, or `PovioKitAppKit` respectively.
+
 ### Migration from versions < 6.0.0
 * We dropped support for iOS 13, 14 and 15. Supported versions are 16+.
 * We dropped support for macOS 12. Supported versions are 13+.
