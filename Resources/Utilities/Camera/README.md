@@ -83,4 +83,9 @@ func prepareQRCodeSCanner() {
 `func scanFailure()`
 
 ## Source code
-You can find source code [here](/Sources/Utilities/Camera).
+You can find source code here:
+- [Camera](/Sources/Utilities/Camera/Camera.swift)
+- [Camera+PovioKit](/Sources/Utilities/Camera/Camera+PovioKit.swift)
+- [CameraService](/Sources/Utilities/Camera/CameraService.swift)
+- [PhotoCamera](/Sources/Utilities/Camera/PhotoCamera.swift)
+- [QRCodeScanner](/Sources/Utilities/Camera/QRCodeScanner.swift)

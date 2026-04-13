@@ -38,4 +38,4 @@ class ViewController: UIViewController {
 ```
 
 ## Source code
-You can find source code [here](/Sources/UI/UIKit/DynamicCollectionCell/DynamicCollectionCell.swift).
+You can find source code [here](/Sources/UI/UIKit/Views/DynamicCollectionCell/DynamicCollectionCell.swift).

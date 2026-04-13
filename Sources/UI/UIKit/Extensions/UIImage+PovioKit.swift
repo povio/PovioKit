@@ -8,6 +8,7 @@
 
 #if os(iOS)
 import UIKit
+import PovioKitCore
 
 public extension UIImage {
   /// Tints image with the given color.

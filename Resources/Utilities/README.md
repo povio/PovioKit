@@ -1,6 +1,6 @@
 # PovioKit: Utilities
 
-Core package including utility tools.
+Utilities package including utility tools.
 
 ### Utilities
 
@@ -16,9 +16,9 @@ Core package including utility tools.
 | [DispatchTimer](DispatchTimer) |
 | [Exif](Exif) |
 | [InAppPurchase](InAppPurchase) |
-| [MediaPlayer](/Sources/Utilities/MediaPlayer) |
+| [MediaPlayer](MediaPlayer) |
 | [Money](Money) |
-| [Property wrapper: UserDefaults](PropertyWrapper/UserDefaults) |
+| [Property wrapper: UserDefaults](PropertyWrapper/UserDefault) |
 | [Property wrapper: XCConfigValue](PropertyWrapper/XCConfigValue) |
 | [StartupService](StartupService) |
 | [Throttler](Throttler) |
