@@ -50,4 +50,7 @@ do {
 ```
 
 ## Source code
-You can find source code [here](/Sources/Utilities/Exif/Exif.swift).
+You can find source code here:
+- [Exif](/Sources/Utilities/Exif/Exif.swift)
+- [ExifError](/Sources/Utilities/Exif/ExifError.swift)
+- [ExifImageSource](/Sources/Utilities/Exif/ExifImageSource.swift)

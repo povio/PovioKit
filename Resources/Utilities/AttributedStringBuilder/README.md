@@ -97,4 +97,7 @@ We've shown how we can configure a couple of attributed parameters, like color, 
 The methods shown through examples above are actually just convenience methods calling generic `addAttribute(key: NSAttributedString.Key, object: Any?)` method. We can use this method instead to configure any other attributes we'd like. 
 
 ## Source code
-You can find source code [here](/Sources/Utilities/AttributedStringBuilder).
+You can find source code here:
+- [AttributedStringBuilder](/Sources/Utilities/AttributedStringBuilder/AttributedStringBuilder.swift)
+- [UILabel+BuilderCompatible](/Sources/Utilities/AttributedStringBuilder/UILabel+BuilderCompatible.swift)
+- [UITextField+BuilderCompatible](/Sources/Utilities/AttributedStringBuilder/UITextField+BuilderCompatible.swift)

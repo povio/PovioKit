@@ -163,4 +163,6 @@ Task {
 ```
 
 ## Source code
-You can find source code [here](/Sources/Utilities/InAppPurchase).
+You can find source code here:
+- [InAppPurchaseService](/Sources/Utilities/InAppPurchase/InAppPurchaseService.swift)
+- [InAppPurchaseError](/Sources/Utilities/InAppPurchase/InAppPurchaseError.swift)

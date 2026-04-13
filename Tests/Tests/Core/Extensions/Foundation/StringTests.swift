@@ -3,7 +3,7 @@
 //  PovioKit_Tests
 //
 //  Created by Borut Tomazin on 05/05/2019.
-//  Copyright © 2025 Povio Inc. All rights reserved.
+//  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
 import XCTest
@@ -67,5 +67,20 @@ class StringTests: XCTestCase {
     let result = markdownString.toMarkdown()
 
     XCTAssertEqual(result, expectedAttributedString)
+  }
+  
+  func testLines() {
+    let value = "first\nsecond\r\nthird"
+    XCTAssertEqual(value.lines.map(String.init), ["first", "second", "third"])
+  }
+  
+  func testContainsEmoji() {
+    XCTAssertTrue("Hello 👋".containsEmoji)
+    XCTAssertFalse("Hello".containsEmoji)
+  }
+  
+  func testInitials() {
+    XCTAssertEqual("John Doe".initials, "JD")
+    XCTAssertEqual("Elena Wayne Gomez".initials, "EG")
   }
 }

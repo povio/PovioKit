@@ -7,7 +7,6 @@ A package including components to help you out developing for SwiftUI framework.
 | Views | Platform | |
 | :--- | :--- | :--- |
 | [LinearProgressStyle](/Sources/UI/SwiftUI/Views/LinearProgressStyle/LinearProgressStyle.swift) | iOS | A custom linear ProgressView style |
-| [ProgressStyle](/Sources/UI/SwiftUI/Views/ProgressStyle/ProgressStyle.swift) | all | Customizable ProgressViewStyle |
 | [MaterialBlurView](/Sources/UI/SwiftUI/Views/MaterialBlurView/MaterialBlurView.swift) | all | Material blur effects view |
 | [PhotoPickerView](/Sources/UI/SwiftUI/Views/PhotoPickerView/PhotoPickerView.swift) | all | Photo and Camera picker view used in combination with `PhotoPickerModifier` |
 | [RemoteImage](/Sources/UI/SwiftUI/Views/RemoteImage/RemoteImage.swift) | all | Fetching remote images using Kingfisher |
@@ -30,3 +29,9 @@ A package including components to help you out developing for SwiftUI framework.
 | [AnyTransition](/Sources/UI/SwiftUI/Extensions/AnyTransition+PovioKit.swift) |
 | [Color](/Sources/UI/SwiftUI/Extensions/Color+PovioKit.swift) |
 | [Text](/Sources/UI/SwiftUI/Extensions/Text+PovioKit.swift) |
+| [View](/Sources/UI/SwiftUI/Extensions/View+PovioKit.swift) |
+
+| Image Processors | Platform | |
+| :--- | :--- | :--- |
+| [HEICImageProcessor](/Sources/UI/SwiftUI/Views/RemoteImage/HEICImageProcessor.swift) | all | Kingfisher processor for HEIC image data. |
+| [JPEGImageProcessor](/Sources/UI/SwiftUI/Views/RemoteImage/JPEGImageProcessor.swift) | all | Kingfisher processor for JPEG image data. |

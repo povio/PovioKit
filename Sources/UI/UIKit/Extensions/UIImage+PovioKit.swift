@@ -3,11 +3,12 @@
 //  PovioKit
 //
 //  Created by Povio Team on 26/4/2019.
-//  Copyright © 2025 Povio Inc. All rights reserved.
+//  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
 #if os(iOS)
 import UIKit
+import PovioKitCore
 
 public extension UIImage {
   /// Tints image with the given color.

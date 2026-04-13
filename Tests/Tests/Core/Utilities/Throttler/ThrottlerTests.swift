@@ -3,7 +3,7 @@
 //  PovioKit_Tests
 //
 //  Created by Klemen Zagar on 05/12/2019.
-//  Copyright © 2025 Povio Inc. All rights reserved.
+//  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
 import XCTest
@@ -63,6 +63,20 @@ class ThrottlerTests: XCTestCase {
     }
     waitForExpectations(timeout: Double(waiting) / 1000, handler: nil)
     XCTAssertEqual(throttler.outputIdentifiers, ["A", "B"])
+  }
+  
+  func testExecuteWithResultReturnsComputedValue() {
+    let throttler = Throttler(queue: .main, delay: .milliseconds(10))
+    let expectation = self.expectation(description: "executeWithResult")
+    var capturedResult: Int?
+    
+    throttler.executeWithResult(work: { 40 + 2 }) { result in
+      capturedResult = result
+      expectation.fulfill()
+    }
+    
+    waitForExpectations(timeout: 1.0, handler: nil)
+    XCTAssertEqual(capturedResult, 42)
   }
 }
 

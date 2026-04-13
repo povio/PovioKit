@@ -7,8 +7,8 @@
   "packages": [
     {
       "url": "https://github.com/povio/PovioKit.git",
-      "summary": "A modular library collection for Swift development, providing Core utilities, UIKit/SwiftUI components, and async/await helpers.",
-      "keywords": ["swift", "ios", "macos", "utilities", "swiftui", "uikit"],
+      "summary": "A modular library collection for Swift development, providing Core utilities, UIKit/SwiftUI/AppKit components, and async/await helpers.",
+      "keywords": ["swift", "ios", "macos", "utilities", "swiftui", "uikit", "appkit"],
       "readmeURL": "https://raw.githubusercontent.com/povio/PovioKit/develop/README.md"
     },
     {
