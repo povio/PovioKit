@@ -21,6 +21,7 @@ Core package includes essentials needed for the development and for other packag
 | [DispatchTimeInterval](/Sources/Core/Extensions/Foundation/DispatchTimeInterval+PovioKit.swift) | | |
 | [Double](/Sources/Core/Extensions/Foundation/Double+PovioKit.swift) | | |
 | [Encodable](/Sources/Core/Extensions/Foundation/Encodable+PovioKit.swift) | | |
+| [NotificationCenter](/Sources/Core/Extensions/Foundation/NotificationCenter+PovioKit.swift) ([Usage](Extensions/NotificationCenter+PovioKit.md)) | | |
 | [Optional](/Sources/Core/Extensions/Foundation/Optional+PovioKit.swift) | | |
 | [Result](/Sources/Core/Extensions/Foundation/Result+PovioKit.swift) | | |
 | [String](/Sources/Core/Extensions/Foundation/String+PovioKit.swift) | | |
