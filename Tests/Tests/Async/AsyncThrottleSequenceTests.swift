@@ -268,4 +268,3 @@ final class AsyncThrottleSequenceTests: XCTestCase {
     XCTAssertGreaterThanOrEqual(elapsed, .milliseconds(200), "Should respect large delay")
   }
 }
-

@@ -1,5 +1,15 @@
 ## Migration Guides
 
+### Migration from versions < 6.3.0
+* [Async] `PovioKitAsync` was significantly expanded with:
+  * `AsyncDebounceSequence` (`debounce`) for bursty input control.
+  * Retry improvements: `shouldRetry` predicate and jitter support in `AsyncRetryPolicy`.
+  * `race` helpers for first-completed operation semantics.
+  * `AsyncSemaphore` for bounded async concurrency.
+  * `TaskCoalescer` for deduplicating in-flight keyed work.
+  * `AsyncTickerSequence` for interval-based async ticks.
+* [Async] Existing `retry` calls remain source-compatible. New `shouldRetry` parameter defaults to retrying all errors.
+
 ### Migration from versions < 6.2.0
 * [Package] Added a separate `PovioKitAppKit` product. If you need AppKit APIs, include this product in your package selection.
 * [Core] `Kingfisher` is no longer a transitive dependency of `PovioKitCore`.
