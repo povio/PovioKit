@@ -17,7 +17,7 @@
         "uikit",
         "appkit"
       ],
-      "readmeURL": "https://raw.githubusercontent.com/povio/PovioKit/develop/README.md",
+      "readmeURL": "https://raw.githubusercontent.com/povio/PovioKit/main/README.md",
       "summary": "A modular library collection for Swift development, providing Core utilities, UIKit/SwiftUI/AppKit components, and async/await helpers.",
       "url": "https://github.com/povio/PovioKit.git",
       "versions": [

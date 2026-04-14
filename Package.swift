@@ -71,6 +71,7 @@ let package = Package(
         "PovioKitCore",
         "PovioKitUIKit",
         "PovioKitSwiftUI",
+        "PovioKitAppKit",
         "PovioKitUtilities",
         "PovioKitAsync",
       ],
