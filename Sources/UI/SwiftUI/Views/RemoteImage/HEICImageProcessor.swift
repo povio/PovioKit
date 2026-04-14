@@ -49,8 +49,9 @@ public struct HEICImageProcessor: ImageProcessor {
   ///   - 0.7-0.8: Balanced (recommended)
   ///   - 0.5-0.6: High compression, smaller file size
   public init(compressionQuality: CGFloat = 0.8) {
-    self.compressionQuality = max(0.0, min(1.0, compressionQuality))
-    self.identifier = "com.povio.HEICImageProcessor(\(compressionQuality))"
+    let clampedQuality = max(0.0, min(1.0, compressionQuality))
+    self.compressionQuality = clampedQuality
+    self.identifier = "com.povio.HEICImageProcessor(\(clampedQuality))"
   }
   
   public func process(item: ImageProcessItem, options: KingfisherParsedOptionsInfo) -> KFCrossPlatformImage? {

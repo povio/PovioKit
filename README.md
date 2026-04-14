@@ -37,6 +37,16 @@
 | `PovioKitUIKit` | Yes | No | UIKit-only APIs. |
 | `PovioKitAppKit` | No | Yes | AppKit-only APIs. |
 
+## Documentation
+
+- API documentation is generated with DocC and published through GitHub Pages.
+- Published docs root: `https://povio.github.io/PovioKit/`
+- To build docs locally:
+
+```bash
+xcodebuild docbuild -destination 'platform=macOS' -scheme 'PovioKit-Package'
+```
+
 ## Installation
 
 ### Swift Package Manager
