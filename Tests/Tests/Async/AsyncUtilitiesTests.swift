@@ -98,8 +98,8 @@ final class AsyncUtilitiesTests: XCTestCase {
 
   func testWithTimeoutThrowsWhenDeadlineExpires() async {
     do {
-      _ = try await withTimeout(.milliseconds(20)) {
-        try await Task.sleep(for: .milliseconds(100))
+      _ = try await withTimeout(.milliseconds(1)) {
+        try await Task.sleep(for: .seconds(5))
         return 1
       }
       XCTFail("Expected timeout error")

@@ -44,4 +44,4 @@ jobs:
         xcode-version: latest-stable
 
     - name: Run tests
-      run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild test -destination 'platform=macOS' -scheme 'PovioKit-Package' | xcpretty
+      run: env NSUnbufferedIO=YES swift test --no-parallel

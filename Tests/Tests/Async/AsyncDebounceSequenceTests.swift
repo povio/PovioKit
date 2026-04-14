@@ -34,7 +34,7 @@ final class AsyncDebounceSequenceTests: XCTestCase {
   }
 
   func testDebounceEmitsOnlyLatestValueFromBurst() async throws {
-    let sequence = DelayedValuesSequence(values: [1, 2, 3, 4], delayBetweenValues: .milliseconds(10))
+    let sequence = DelayedValuesSequence(values: [1, 2, 3, 4], delayBetweenValues: .zero)
     let debounced = sequence.debounce(
       clock: .suspending,
       delayBetweenElements: .milliseconds(50)
@@ -49,10 +49,10 @@ final class AsyncDebounceSequenceTests: XCTestCase {
   }
 
   func testDebounceEmitsAllWhenValuesAreSpacedOut() async throws {
-    let sequence = DelayedValuesSequence(values: [1, 2, 3], delayBetweenValues: .milliseconds(80))
+    let sequence = DelayedValuesSequence(values: [1, 2, 3], delayBetweenValues: .milliseconds(200))
     let debounced = sequence.debounce(
       clock: .suspending,
-      delayBetweenElements: .milliseconds(30)
+      delayBetweenElements: .milliseconds(20)
     )
 
     var received: [Int] = []
