@@ -9,6 +9,7 @@
 import AVFoundation
 
 public class Camera: NSObject {
+  private static let sessionQueueKey = DispatchSpecificKey<Void>()
   var device: AVCaptureDevice? {
     switch cameraPosition {
     case .back:
@@ -37,6 +38,7 @@ public class Camera: NSObject {
   init(with cameraService: CameraService = CameraService()) {
     self.cameraService = cameraService
     super.init()
+    sessionQueue.setSpecific(key: Self.sessionQueueKey, value: ())
   }
   
   deinit {
@@ -70,9 +72,14 @@ public extension Camera {
   }
   
   func stopSession() {
-    sessionQueue.sync {
+    let stop = {
       guard self.session.isRunning else { return }
       self.session.stopRunning()
+    }
+    if DispatchQueue.getSpecific(key: Self.sessionQueueKey) != nil {
+      stop()
+    } else {
+      sessionQueue.sync(execute: stop)
     }
     try? setTorch(on: false) // just in case but flashlight is automatically turned off when session is stopped
   }

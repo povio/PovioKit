@@ -9,16 +9,21 @@
 import Foundation
 
 public final class Broadcast<T> {
+  private let lock = NSLock()
   private(set) var observers = [Weak]()
 
   public init() {}
   
   public func add(observer: T) {
+    lock.lock()
+    defer { lock.unlock() }
     prune()
     observers.append(Weak(observer as AnyObject))
   }
   
   public func remove(observer: T) {
+    lock.lock()
+    defer { lock.unlock() }
     prune()
     let index = observers.firstIndex {
       $0.reference === observer as AnyObject
@@ -33,9 +38,13 @@ public final class Broadcast<T> {
   }
   
   public func invoke(invocation: (T) -> Void) {
-    observers.reversed().forEach {
-      guard let delegate = $0.reference as? T else { return }
-      invocation(delegate)
+    lock.lock()
+    prune()
+    let listeners = observers.compactMap { $0.reference as? T }
+    lock.unlock()
+    
+    listeners.reversed().forEach {
+      invocation($0)
     }
   }
   
@@ -49,6 +58,8 @@ public final class Broadcast<T> {
   }
   
   public func clear() {
+    lock.lock()
+    defer { lock.unlock() }
     observers.removeAll()
   }
 }

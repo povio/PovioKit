@@ -9,12 +9,12 @@
 import Foundation
 
 /// An abstraction for a predefined set of functionality, aimed to be ran once, at app startup.
-public protocol StartupProcess {
+public protocol StartupProcess: AnyObject {
   func run(completion: @escaping (Bool) -> Void)
 }
 
 extension StartupProcess {
   public var id: String {
-    UUID().uuidString
+    String(ObjectIdentifier(self).hashValue)
   }
 }

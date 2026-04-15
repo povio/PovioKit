@@ -10,6 +10,22 @@ import Foundation
 import PovioKitCore
 import StoreKit
 
+internal enum PurchasedProductIDsResolver {
+  static func resolve(entitlementProductIDs: [String], availableProductIDs: [String]) -> [String] {
+    let availableSet = Set(availableProductIDs)
+    var seen = Set<String>()
+    var resolved = [String]()
+    
+    for id in entitlementProductIDs where availableSet.contains(id) {
+      if seen.insert(id).inserted {
+        resolved.append(id)
+      }
+    }
+    
+    return resolved
+  }
+}
+
 public final class InAppPurchaseService: NSObject {
   public typealias IAPProduct = String
   public typealias IAPReceipt = String
@@ -171,11 +187,14 @@ private extension InAppPurchaseService {
   }
   
   func updatePurchasedProducts() async {
+    purchasedProducts.removeAll(keepingCapacity: true)
     for await result in Transaction.currentEntitlements {
       do {
         let transaction = try checkVerified(result)
         if let product = availableProducts.first(where: { $0.id == transaction.productID }) {
-          purchasedProducts.append(product)
+          if purchasedProducts.contains(where: { $0.id == product.id }) == false {
+            purchasedProducts.append(product)
+          }
         }
       } catch {
         Logger.error("Update purchased products status failed!", params: ["error": error.localizedDescription])

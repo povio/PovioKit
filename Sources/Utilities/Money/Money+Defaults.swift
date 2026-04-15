@@ -8,6 +8,9 @@
 
 import Foundation
 
+private let moneyDefaultsLock = NSLock()
+private var moneyDefaultsStorage = Money.Defaults()
+
 public extension Money {
   struct Defaults {
     public var precision = 2
@@ -16,7 +19,30 @@ public extension Money {
     
     public init() {}
   }
+  
+  static var defaults: Defaults {
+    get {
+      moneyDefaultsLock.lock()
+      defer { moneyDefaultsLock.unlock() }
+      return moneyDefaultsStorage
+    }
+    _modify {
+      moneyDefaultsLock.lock()
+      defer { moneyDefaultsLock.unlock() }
+      yield &moneyDefaultsStorage
+    }
+    set {
+      moneyDefaultsLock.lock()
+      defer { moneyDefaultsLock.unlock() }
+      moneyDefaultsStorage = newValue
+    }
+  }
 }
 
-// NOTE: - Not thread safe! Previous instances won't be affected.
-public var defaults = Money.Defaults()
+/// Legacy global alias kept for backwards compatibility.
+///
+/// Prefer `Money.defaults` for clarity.
+public var defaults: Money.Defaults {
+  get { Money.defaults }
+  set { Money.defaults = newValue }
+}

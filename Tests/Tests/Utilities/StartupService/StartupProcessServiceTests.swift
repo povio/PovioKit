@@ -41,6 +41,12 @@ class StartupProcessServiceTests: XCTestCase {
     
     XCTAssertNotEqual(process1.id, process2.id)
   }
+  
+  func test_id_isStableForSameInstance() {
+    let process = MockedStartupProcess()
+    
+    XCTAssertEqual(process.id, process.id)
+  }
 }
 
 private class MockedStartupProcess: StartupProcess {
