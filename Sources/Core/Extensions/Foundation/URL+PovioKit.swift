@@ -22,14 +22,14 @@ public extension URL {
     self.init(string: string)
   }
   
-  /// Append parameter to the URL.
+  /// Appends a query parameter to the URL.
   ///
   /// ## Example
   /// ```
   /// let someURL: URL = "https://povio.com"
   /// let newURL = someURL
   ///   .appending("accept", value: "developers")
-  ///   .appending("tech", value: "iOS"
+  ///   .appending("tech", value: "iOS")
   ///
   /// print(newURL) // https://povio.com?accept=developers&tech=iOS
   /// ```
@@ -69,8 +69,8 @@ extension Foundation.URL: Swift.ExpressibleByStringLiteral {
   /// Creates a `URL` object from a string literal.
   ///
   /// This initializer enables `URL` values to be initialized directly from string literals.
-  /// If the literal is invalid, PovioKit emits an assertion failure in debug builds and falls
-  /// back to `about:blank` instead of crashing in production.
+  /// In debug builds, invalid literals trigger `assertionFailure` to surface programmer errors.
+  /// In other builds, invalid literals fall back to `about:blank`.
   ///
   /// - Parameter value: A string literal representing a URL.
   /// - Warning: Invalid literals indicate a programmer error and should be fixed at the call site.

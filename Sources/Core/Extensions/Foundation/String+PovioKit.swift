@@ -16,13 +16,13 @@ public extension String {
     return withVaList(args) { NSString(format: localizedString, locale: Locale.current, arguments: $0) as String }
   }
   
-  /// Trim white spaces from both ends
+  /// Trims whitespace and newlines from both ends.
   @available(*, deprecated, renamed: "trimmed")
   var trimed: String {
     trimmed
   }
   
-  /// Trim white spaces from both ends.
+  /// Trims whitespace and newlines from both ends.
   var trimmed: String {
     trimmingCharacters(in: .whitespacesAndNewlines)
   }

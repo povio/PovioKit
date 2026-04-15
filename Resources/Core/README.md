@@ -1,6 +1,6 @@
 # PovioKit: Core
 
-Core package includes essentials needed for the development and for other packages.
+Core includes essentials used in app development and by other PovioKit packages.
 
 The module is intentionally foundation-first and serves as the base dependency for other PovioKit products.
 

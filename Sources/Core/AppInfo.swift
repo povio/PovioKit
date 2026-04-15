@@ -33,7 +33,7 @@ public enum AppInfo {
   }
 #endif
   
-  /// Opens `App Store` deep linking to the app with provided id.
+  /// Opens App Store deep link for the provided app ID.
   ///
   /// - Returns: `true` when the URL is forwarded to the system opener.
   @discardableResult
@@ -42,7 +42,7 @@ public enum AppInfo {
     return openUrl(appStoreUrl)
   }
   
-  /// Passing the `number` will trigger the system call with "tel://" prefix.
+  /// Initiates a phone call using a `tel://` URL.
   ///
   /// Characters not supported by `tel://` URLs are removed before opening.
   ///
@@ -57,9 +57,9 @@ public enum AppInfo {
     return openUrl(callUrl)
   }
   
-  /// Opens given `url` in the default browser, if `canOpenURL` method returns true.
+  /// Opens the given URL in the default browser when available.
   ///
-  /// If `isSafari` param is true, url will be opened in the Safari instead, overriding the default selected browser.
+  /// If `inSafari` is `true`, Safari is preferred when platform support is available.
   ///
   /// - Returns: `true` when the URL passes `canOpenURL` and is forwarded for opening.
   @discardableResult
@@ -97,22 +97,22 @@ public enum AppInfo {
 #endif
   }
   
-  /// Returns bundle id
+  /// Returns the bundle identifier.
   public static var bundleId: String {
     Bundle.main.object(forInfoDictionaryKey: "CFBundleIdentifier") as? String ?? "/"
   }
   
-  /// Returns app name
+  /// Returns the app name.
   public static var name: String {
     Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "/"
   }
   
-  /// Returns App Store build, e.g. `84`
+  /// Returns the app build number, for example `84`.
   public static var build: String {
     Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "/"
   }
   
-  /// Returns App Store app version, e.g. `1.9.3`
+  /// Returns the app version, for example `1.9.3`.
   public static var version: String {
     Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "/"
   }

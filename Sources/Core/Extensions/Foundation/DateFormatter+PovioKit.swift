@@ -33,7 +33,7 @@ public extension DateFormatter {
     makeFormatter(with: "MMMM d, yyyy")
   }
   
-  /// Format a date in a abbreviated format.
+  /// Formats a date using an abbreviated format.
   ///
   /// `Oct 2, 2024`
   static var abbreviatedDate: DateFormatter {
@@ -47,7 +47,7 @@ public extension DateFormatter {
     makeFormatter(with: "yyyy-MM-dd")
   }
   
-  /// Format a date using an US format.
+  /// Formats a date using a US format.
   ///
   /// `10/02/2024`
   static var usDate: DateFormatter {
