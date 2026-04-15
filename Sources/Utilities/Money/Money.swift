@@ -33,9 +33,9 @@ public struct Money: Hashable {
    */
   public init(
     amount: Cents,
-    currency: Currency = defaults.currency,
-    localeIdentifier: String = defaults.locale.identifier,
-    precision: Int = defaults.precision
+    currency: Currency = Money.defaults.currency,
+    localeIdentifier: String = Money.defaults.locale.identifier,
+    precision: Int = Money.defaults.precision
   ) {
     self.amount = amount
     self.currency = currency
@@ -143,7 +143,8 @@ public extension Money {
    ```
    */
   mutating func trimPrecision() {
-    while amount % 10 == 0 {
+    guard amount != .zero else { return }
+    while precision > .zero, amount % 10 == 0 {
       amount /= 10
       precision -= 1
     }
@@ -198,8 +199,8 @@ extension Money: ExpressibleByFloatLiteral, CustomStringConvertible {
   /// a factor works as expected.
   public init(floatLiteral cents: Double) {
     self.amount = Cents(cents)
-    self.currency = defaults.currency
-    self.localeIdentifier = defaults.locale.identifier
+    self.currency = Money.defaults.currency
+    self.localeIdentifier = Money.defaults.locale.identifier
     self.precision = 2
   }
   
@@ -262,7 +263,7 @@ public func * (_ lhs: Money, _ rhs: Money) -> Money {
 /// - Parameter rhs: The amount of cents to be added. It is converted to `Money`:  Money(amount: rhs, currency: lhs.currency, precision: defaults.precision)
 /// - Returns: **New** Money object
 public func + (lhs: Money, rhs: Money.Cents) -> Money {
-  let rhs = Money(amount: rhs, currency: lhs.currency, localeIdentifier: lhs.localeIdentifier, precision: defaults.precision)
+  let rhs = Money(amount: rhs, currency: lhs.currency, localeIdentifier: lhs.localeIdentifier, precision: Money.defaults.precision)
   return lhs + rhs
 }
 
@@ -270,7 +271,7 @@ public func + (lhs: Money, rhs: Money.Cents) -> Money {
 /// - Parameter lhs: The amount of cents to be added. It is converted to `Money`:  Money(amount: lhs, currency: rhs.currency, precision: defaults.precision)
 /// - Returns: **New** Money object
 public func + (lhs: Money.Cents, rhs: Money) -> Money {
-  let lhs = Money(amount: lhs, currency: rhs.currency, localeIdentifier: rhs.localeIdentifier, precision: defaults.precision)
+  let lhs = Money(amount: lhs, currency: rhs.currency, localeIdentifier: rhs.localeIdentifier, precision: Money.defaults.precision)
   return lhs + rhs
 }
 
@@ -278,7 +279,7 @@ public func + (lhs: Money.Cents, rhs: Money) -> Money {
 /// - Parameter rhs: The amount of cents to be substracted. It is converted to `Money`:  Money(amount: rhs, currency: lhs.currency, precision: defaults.precision)
 /// - Returns: **New** Money object
 public func - (lhs: Money, rhs: Money.Cents) -> Money {
-  let rhs = Money(amount: rhs, currency: lhs.currency, localeIdentifier: lhs.localeIdentifier, precision: defaults.precision)
+  let rhs = Money(amount: rhs, currency: lhs.currency, localeIdentifier: lhs.localeIdentifier, precision: Money.defaults.precision)
   return lhs - rhs
 }
 
@@ -286,7 +287,7 @@ public func - (lhs: Money, rhs: Money.Cents) -> Money {
 /// - Parameter rhs: The amount of cents to be substracted. It is converted to `Money`:  Money(amount: lhs, currency: rhs.currency, precision: defaults.precision)
 /// - Returns: **New** Money object
 public func - (lhs: Money.Cents, rhs: Money) -> Money {
-  let lhs = Money(amount: lhs, currency: rhs.currency, localeIdentifier: rhs.localeIdentifier, precision: defaults.precision)
+  let lhs = Money(amount: lhs, currency: rhs.currency, localeIdentifier: rhs.localeIdentifier, precision: Money.defaults.precision)
   return lhs - rhs
 }
 

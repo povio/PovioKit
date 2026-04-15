@@ -10,6 +10,7 @@ import Foundation
 
 public class Throttler {
   private let queue: DispatchQueue
+  private let lock = NSLock()
   private var job: DispatchWorkItem?
   public var delay: DispatchTimeInterval
   
@@ -21,10 +22,8 @@ public class Throttler {
 
 public extension Throttler {
   func execute(work: @escaping () -> Void) {
-    cancelPendingJob()
-    
     let newJob = DispatchWorkItem(block: work)
-    job = newJob
+    replacePendingJob(with: newJob)?.cancel()
     queue.asyncAfter(deadline: .now() + delay, execute: newJob)
   }
   
@@ -32,15 +31,25 @@ public extension Throttler {
     work: @escaping () -> T,
     completion: @escaping (T) -> Void
   ) {
-    cancelPendingJob()
     let newJob = DispatchWorkItem {
       completion(work())
     }
-    job = newJob
+    replacePendingJob(with: newJob)?.cancel()
     queue.asyncAfter(deadline: .now() + delay, execute: newJob)
   }
   
   func cancelPendingJob() {
-    job?.cancel()
+    replacePendingJob(with: nil)?.cancel()
+  }
+}
+
+private extension Throttler {
+  @discardableResult
+  func replacePendingJob(with newValue: DispatchWorkItem?) -> DispatchWorkItem? {
+    lock.lock()
+    defer { lock.unlock() }
+    let oldValue = job
+    job = newValue
+    return oldValue
   }
 }

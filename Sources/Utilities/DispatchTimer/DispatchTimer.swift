@@ -20,6 +20,7 @@ public final class DispatchTimer {
 public extension DispatchTimer {
   /// Creates and schedules a timer (repeating or one time execution) afer given time interval
   func schedule(interval: DispatchTimeInterval, repeating: Bool, on queue: DispatchQueue, _ completion: (() -> Swift.Void)?) {
+    stop()
     timer = DispatchSource.makeTimerSource(flags: .strict, queue: queue)
     switch repeating {
     case true:

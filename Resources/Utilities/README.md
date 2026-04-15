@@ -13,6 +13,7 @@ Utilities package including utility tools.
 | [Camera](Camera) |
 | [ColorInterpolator](ColorInterpolator) |
 | [Delegated](Delegated) |
+| [Debouncer](Debouncer) |
 | [DispatchTimer](DispatchTimer) |
 | [Exif](Exif) |
 | [InAppPurchase](InAppPurchase) |

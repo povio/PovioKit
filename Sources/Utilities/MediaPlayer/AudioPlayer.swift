@@ -15,7 +15,11 @@ public class AudioPlayer: MediaPlayer {
   public private(set) var streams: [MediaStream] = []
   public private(set) var currentStream: MediaStream?
 
-  public weak var audioDelegate: MediaPlayerDelegate?
+  /// Legacy alias kept for backwards compatibility.
+  public var audioDelegate: MediaPlayerDelegate? {
+    get { delegate }
+    set { delegate = newValue }
+  }
 
   // MARK: - Private properties -
 

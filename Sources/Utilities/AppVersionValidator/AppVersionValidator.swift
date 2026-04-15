@@ -1,12 +1,17 @@
 //
 //  AppVersionValidator.swift
-//  Alamofire
+//  PovioKit
 //
 //  Created by Toni Kocjan on 16/02/2021.
 //  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
 import Foundation
+
+public enum AppVersionValidatorError: Swift.Error, Equatable {
+  case emptyVersionString
+  case invalidVersionComponent(String)
+}
 
 public final class AppVersionValidator {
   public init() {}
@@ -50,17 +55,19 @@ public final class AppVersionValidator {
 
 private extension AppVersionValidator {
   func versionComponents(from string: String) throws -> [Int] {
-    let collection = try string
-      .components(separatedBy: ".")
-      .map { try Int(throwable: $0) }
-    guard !collection.isEmpty else { throw NSError(domain: "com.poviokit.version-validator", code: -4, userInfo: nil) }
-    return collection
-  }
-}
-
-fileprivate extension Int {
-  init(throwable string: String) throws {
-    guard let intValue = Int(string) else { throw NSError(domain: "com.poviokit.version-validator", code: -3, userInfo: nil) }
-    self = intValue
+    guard string.isEmpty == false else {
+      throw AppVersionValidatorError.emptyVersionString
+    }
+    let components = string.components(separatedBy: ".")
+    let numbers = try components.map { component in
+      guard component.isEmpty == false else {
+        throw AppVersionValidatorError.invalidVersionComponent(component)
+      }
+      guard let number = Int(component) else {
+        throw AppVersionValidatorError.invalidVersionComponent(component)
+      }
+      return number
+    }
+    return numbers
   }
 }

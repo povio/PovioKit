@@ -54,7 +54,8 @@ public class MediaPlayer: AVPlayer {
   /// called every 500 miliseconds
   public var timeObservingMiliseconds: Int = 500 {
     didSet {
-      // Set up a new time observer with the updated interval
+      // Recreate observer so interval updates take effect.
+      removePeriodicTimeObserver()
       setupPeriodicTimeObserver()
     }
   }
@@ -91,6 +92,7 @@ public class MediaPlayer: AVPlayer {
   private var playWhenReady: Bool = false
   private var playerItemObserver: NSKeyValueObservation?
   private var periodicTimeObserver: Any?
+  private weak var observedPlayerItem: AVPlayerItem?
   
   override public init() {
     super.init()
@@ -225,7 +227,7 @@ public class MediaPlayer: AVPlayer {
   ///   - startAt: The new start of the playback range.
   ///   - endAt: The new end of the playback range.
   ///
-  /// If the current time is out of new range, this function does nothing.
+  /// If the current time is out of new range, this function clamps playback position into the new range.
   func updatePlaybackInterval(startAt: Double, endAt: Double) {
     guard startAt < endAt else {
       Logger.error("`startAt` should be less than `endAt`")
@@ -243,6 +245,11 @@ public class MediaPlayer: AVPlayer {
 // MARK: - Private Methods
 private extension MediaPlayer {
   func setupPlayerItemObserver() {
+    NotificationCenter.default.removeObserver(
+      self,
+      name: AVPlayerItem.didPlayToEndTimeNotification,
+      object: observedPlayerItem
+    )
     // notification when playback ends
     NotificationCenter.default.addObserver(
       self,
@@ -251,12 +258,14 @@ private extension MediaPlayer {
       object: currentItem
     )
     
-    guard playerItemObserver == nil else {
+    if playerItemObserver != nil, observedPlayerItem === currentItem {
       setupPeriodicTimeObserver()
       return
     }
+    observedPlayerItem = currentItem
     removePeriodicTimeObserver()
-    playerItemObserver = currentItem?.observe(\.status, options: [.new, .old]) { [weak self] playerItem, _ in
+    playerItemObserver?.invalidate()
+    playerItemObserver = currentItem?.observe(\.status, options: [.new, .old, .initial]) { [weak self] playerItem, _ in
       guard let self else { return }
       switch playerItem.status {
       case .readyToPlay:
@@ -294,7 +303,8 @@ private extension MediaPlayer {
       }
       
       delegate?.mediaPlayer(self, didProgressToTime: time.seconds)
-      delegate?.mediaPlayer(self, onProgressUpdate: Float(time.seconds / duration))
+      let progress = duration > 0 ? Float(time.seconds / duration) : 0
+      delegate?.mediaPlayer(self, onProgressUpdate: progress)
       timeObserverCallback(time: time)
       
       guard let currentItem = self.currentItem, currentItem.status == .readyToPlay else { return }
@@ -316,8 +326,14 @@ private extension MediaPlayer {
   }
   
   func removePlayerItemObserver() {
+    NotificationCenter.default.removeObserver(
+      self,
+      name: AVPlayerItem.didPlayToEndTimeNotification,
+      object: observedPlayerItem
+    )
     playerItemObserver?.invalidate()
     playerItemObserver = nil
+    observedPlayerItem = nil
   }
   
   func removePeriodicTimeObserver() {
@@ -352,7 +368,11 @@ private extension MediaPlayer {
 private extension MediaPlayer {
   @objc func playerDidFinishPlaying() {
     removePeriodicTimeObserver()
-    NotificationCenter.default.removeObserver(self)
+    NotificationCenter.default.removeObserver(
+      self,
+      name: AVPlayerItem.didPlayToEndTimeNotification,
+      object: observedPlayerItem
+    )
     state = .ended
   }
 }
