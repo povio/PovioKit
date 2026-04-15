@@ -16,7 +16,8 @@ let package = Package(
     .library(name: "PovioKitAsync", targets: ["PovioKitAsync"]),
   ],
   dependencies: [
-    .package(url: "https://github.com/onevcat/Kingfisher", .upToNextMajor(from: "8.0.0"))
+    .package(url: "https://github.com/onevcat/Kingfisher", .upToNextMajor(from: "8.0.0")),
+    .package(url: "https://github.com/apple/swift-docc-plugin", from: "1.4.5")
   ],
   targets: [
     .target(
@@ -71,6 +72,7 @@ let package = Package(
         "PovioKitCore",
         "PovioKitUIKit",
         "PovioKitSwiftUI",
+        "PovioKitAppKit",
         "PovioKitUtilities",
         "PovioKitAsync",
       ],

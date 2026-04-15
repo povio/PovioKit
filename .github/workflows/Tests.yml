@@ -8,8 +8,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  actions: write
+
 jobs:
-  Tests:
+  Tests-iOS:
     runs-on: macos-26-xlarge
     steps:
     - name: Cancel previous jobs
@@ -28,3 +32,20 @@ jobs:
 
     - name: Run tests
       run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild test-without-building -destination 'name=iPhone 17 Pro,OS=26.1' -scheme 'PovioKit-Package' | xcpretty      
+
+  Tests-macOS:
+    runs-on: macos-26-xlarge
+    steps:
+    - name: Cancel previous jobs
+      uses: styfle/cancel-workflow-action@0.12.1
+
+    - name: Checkout Repository
+      uses: actions/checkout@v5
+
+    - name: Load Latest Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - name: Run tests
+      run: env NSUnbufferedIO=YES swift test --no-parallel
