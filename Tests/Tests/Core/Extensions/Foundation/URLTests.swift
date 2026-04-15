@@ -26,6 +26,13 @@ class URLTests: XCTestCase {
     XCTAssertNotNil(url)
   }
   
+#if !DEBUG
+  func testInitWithInvalidStringLiteralFallsBackToAboutBlank() {
+    let url = URL(stringLiteral: "https://[::1")
+    XCTAssertEqual(url.absoluteString, "about:blank")
+  }
+#endif
+  
   func testAppending() {
     let url: URL = "https://github.com/poviolabs/PovioKit"
     let newUrl = url

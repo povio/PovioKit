@@ -142,6 +142,13 @@ final class DateFormatterTests: XCTestCase {
     XCTAssertEqual(result1, result2, "Formatter should produce consistent results")
   }
   
+  func testFormatterAccessReturnsIndependentInstances() {
+    let first = DateFormatter.iso8601Date
+    let second = DateFormatter.iso8601Date
+    
+    XCTAssertFalse(first === second, "Each access should return an independent formatter instance")
+  }
+  
   func testFormattersAreDifferent() {
     // Ensure different formatters produce different output
     let iso = DateFormatter.iso8601Date
