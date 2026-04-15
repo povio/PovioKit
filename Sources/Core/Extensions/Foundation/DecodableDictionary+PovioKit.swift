@@ -22,10 +22,11 @@ import Foundation
 /// ```
 public struct DecodableDictionary: Decodable {
   public typealias Value = [String: Any]
-  public let dictionary: Value?
+  public let dictionary: Value
   
   public init(from decoder: Decoder) throws {
-    dictionary = try? decoder.container(keyedBy: AnyCodingKey.self).decode(Value.self)
+    let container = try decoder.container(keyedBy: AnyCodingKey.self)
+    dictionary = try container.decode(Value.self)
   }
 }
 

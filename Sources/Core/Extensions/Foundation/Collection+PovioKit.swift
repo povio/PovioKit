@@ -10,7 +10,6 @@ import Foundation
 
 public extension Collection {
   /// Returns the element at the specified `index` if it is within bounds, otherwise `nil`.
-  /// Returns the element at the specified `index` if it is within bounds, otherwise `nil`.
   ///
   /// This subscript safely accesses an element in the collection at the given index. If the index is out of bounds, it returns `nil` instead of causing a runtime error.
   ///
@@ -119,8 +118,7 @@ public extension Collection {
       grouping: self,
       by: {
         let components = calendar.dateComponents(dateComponents, from: extractDate($0))
-        let date = calendar.date(from: components) ?? Date()
-        return date
+        return calendar.date(from: components) ?? extractDate($0)
       }
     )
   }

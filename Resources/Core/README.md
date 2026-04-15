@@ -2,6 +2,8 @@
 
 Core package includes essentials needed for the development and for other packages.
 
+The module is intentionally foundation-first and serves as the base dependency for other PovioKit products.
+
 ### Essentials
 | Components |
 | :--- |
@@ -26,3 +28,7 @@ Core package includes essentials needed for the development and for other packag
 | [Result](/Sources/Core/Extensions/Foundation/Result+PovioKit.swift) | | |
 | [String](/Sources/Core/Extensions/Foundation/String+PovioKit.swift) | | |
 | [URL](/Sources/Core/Extensions/Foundation/URL+PovioKit.swift) | | |
+
+### Notes
+- Some app lifecycle helpers are only available when UIKit can be imported.
+- Notification helpers support `post`, `observe`, and Combine `publisher` workflows.

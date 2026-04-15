@@ -17,7 +17,13 @@ public extension String {
   }
   
   /// Trim white spaces from both ends
+  @available(*, deprecated, renamed: "trimmed")
   var trimed: String {
+    trimmed
+  }
+  
+  /// Trim white spaces from both ends.
+  var trimmed: String {
     trimmingCharacters(in: .whitespacesAndNewlines)
   }
   

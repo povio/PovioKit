@@ -15,35 +15,60 @@ import AppKit
 public enum AppInfo {
 #if os(iOS)
   /// Opens `Settings` app for current app.
-  public static func openSettings() {
-    URL(string: UIApplication.openSettingsURLString).map { openUrl($0) }
+  ///
+  /// - Returns: `true` when the URL is forwarded to the system opener.
+  @discardableResult
+  public static func openSettings() -> Bool {
+    guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else { return false }
+    return openUrl(settingsUrl)
   }
   
   /// Opens `Notifications` section in `Settings` app.
-  public static func openNotificationSettings() {
-    URL(string: UIApplication.openNotificationSettingsURLString).map { openUrl($0) }
+  ///
+  /// - Returns: `true` when the URL is forwarded to the system opener.
+  @discardableResult
+  public static func openNotificationSettings() -> Bool {
+    guard let settingsUrl = URL(string: UIApplication.openNotificationSettingsURLString) else { return false }
+    return openUrl(settingsUrl)
   }
 #endif
   
   /// Opens `App Store` deep linking to the app with provided id.
-  public static func openAppStore(appId: String) {
-    guard let url = URL(string: "itms-apps://apps.apple.com/app/id\(appId)") else { return }
-    openUrl(url)
+  ///
+  /// - Returns: `true` when the URL is forwarded to the system opener.
+  @discardableResult
+  public static func openAppStore(appId: String) -> Bool {
+    guard let appStoreUrl = URL(string: "itms-apps://apps.apple.com/app/id\(appId)") else { return false }
+    return openUrl(appStoreUrl)
   }
   
   /// Passing the `number` will trigger the system call with "tel://" prefix.
-  public static func call(_ number: String) {
-    URL(string: "tel://" + number).map { openUrl($0) }
+  ///
+  /// Characters not supported by `tel://` URLs are removed before opening.
+  ///
+  /// - Returns: `true` when the sanitized number can be opened.
+  @discardableResult
+  public static func call(_ number: String) -> Bool {
+    let normalizedNumber = number
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+      .filter { $0.isWholeNumber || $0 == "+" || $0 == "*" || $0 == "#" || $0 == "," }
+    guard !normalizedNumber.isEmpty else { return false }
+    guard let callUrl = URL(string: "tel://\(normalizedNumber)") else { return false }
+    return openUrl(callUrl)
   }
   
   /// Opens given `url` in the default browser, if `canOpenURL` method returns true.
   ///
   /// If `isSafari` param is true, url will be opened in the Safari instead, overriding the default selected browser.
-  public static func openUrl(_ url: URL, inSafari: Bool = false) {
+  ///
+  /// - Returns: `true` when the URL passes `canOpenURL` and is forwarded for opening.
+  @discardableResult
+  public static func openUrl(_ url: URL, inSafari: Bool = false) -> Bool {
     var targetUrl = url
 #if os(iOS)
     if inSafari, #available(iOS 17.5, *) {
-      targetUrl = URL(string: "x-safari-\(url.absoluteString)")!
+      guard let safariUrl = URL(string: "x-safari-\(url.absoluteString)") else { return false }
+      targetUrl = safariUrl
     }
     let canOpen = AppInfoURLHandlerStore.canOpenUrlHandlerForTesting ?? { target in
       UIApplication.shared.canOpenURL(target)
@@ -51,8 +76,9 @@ public enum AppInfo {
     let open = AppInfoURLHandlerStore.openUrlHandlerForTesting ?? { target in
       UIApplication.shared.open(target, options: [:])
     }
-    guard canOpen(targetUrl) else { return }
+    guard canOpen(targetUrl) else { return false }
     open(targetUrl)
+    return true
 #elseif os(macOS)
     if inSafari, let safariUrl = URL(string: "safari://\(url.absoluteString)") {
       targetUrl = safariUrl
@@ -63,8 +89,11 @@ public enum AppInfo {
     let open = AppInfoURLHandlerStore.openUrlHandlerForTesting ?? { target in
       NSWorkspace.shared.open(target)
     }
-    guard canOpen(targetUrl) else { return }
+    guard canOpen(targetUrl) else { return false }
     open(targetUrl)
+    return true
+#else
+    return false
 #endif
   }
   

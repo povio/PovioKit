@@ -1,6 +1,6 @@
 //
 //  Result+PovioKit.swift
-//  Alamofire
+//  PovioKit
 //
 //  Created by Borut Tomazin on 24/02/2020.
 //  Copyright © 2026 Povio Inc. All rights reserved.
