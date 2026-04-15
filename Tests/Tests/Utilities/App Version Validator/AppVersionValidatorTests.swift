@@ -42,4 +42,20 @@ class AppVersionValidatorTests: XCTestCase {
     XCTAssertThrowsError(try validator.isAppVersion("...", equalOrHigherThan: "2.0.0"))
     XCTAssertThrowsError(try validator.isAppVersion("1.v.5", equalOrHigherThan: "2.0.0"))
   }
+  
+  func testValidatorThrowsEmptyVersionError() {
+    let validator = AppVersionValidator()
+    
+    XCTAssertThrowsError(try validator.isAppVersion("", equalOrHigherThan: "1.0")) { error in
+      XCTAssertEqual(error as? AppVersionValidatorError, .emptyVersionString)
+    }
+  }
+  
+  func testValidatorThrowsInvalidComponentError() {
+    let validator = AppVersionValidator()
+    
+    XCTAssertThrowsError(try validator.isAppVersion("1.v.5", equalOrHigherThan: "1.0")) { error in
+      XCTAssertEqual(error as? AppVersionValidatorError, .invalidVersionComponent("v"))
+    }
+  }
 }

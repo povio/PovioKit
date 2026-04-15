@@ -26,7 +26,8 @@ class ThrottlerTests: XCTestCase {
   
   func testShouldNotExecuteWhenCanceled() {
     let delay = 10
-    let waiting = delay + 50
+    // Keep enough scheduler slack for CI/load spikes.
+    let waiting = delay + 250
     let throttler = MockedThrottler(delay: .milliseconds(delay))
     let expectation = self.expectation(description: "delay")
     throttler.execute { }

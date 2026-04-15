@@ -8,6 +8,14 @@ import XCTest
 import PovioKitUtilities
 
 final class AudioPlayerTests: XCTestCase {
+  private final class DelegateSpy: MediaPlayerDelegate {
+    var stateUpdates = 0
+    
+    func mediaPlayer(_ player: MediaPlayer, didUpdatePlaybackState playbackState: MediaPlayer.PlaybackState) {
+      stateUpdates += 1
+    }
+  }
+  
   private func stream(id: String) -> GenericAudioStream {
     GenericAudioStream(id: id, title: "Stream \(id)", url: URL(string: "https://povio.com/\(id).mp3")!)
   }
@@ -76,5 +84,15 @@ final class AudioPlayerTests: XCTestCase {
     
     XCTAssertEqual(player.currentStream?.id, "1")
     XCTAssertEqual(player.state, .stopped)
+  }
+  
+  func testAudioDelegateForwardsToMediaPlayerDelegate() {
+    let player = AudioPlayer(streams: [stream(id: "1")])
+    let spy = DelegateSpy()
+    
+    player.audioDelegate = spy
+    player.state = .playing
+
+    XCTAssertEqual(spy.stateUpdates, 1)
   }
 }

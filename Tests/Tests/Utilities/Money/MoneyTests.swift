@@ -114,6 +114,15 @@ class MoneyTests: XCTestCase {
     XCTAssertEqual(Money(amount: 20000, precision: 4).trimedPrecision(), Money(amount: 2, precision: 0))
   }
   
+  func testTrimPrecisionKeepsZeroAmountUnchanged() {
+    let initial = Money(amount: 0, currency: .usd, precision: 4)
+    let trimmed = initial.trimedPrecision()
+    
+    XCTAssertEqual(trimmed.amount, 0)
+    XCTAssertEqual(trimmed.precision, 4)
+    XCTAssertEqual(trimmed.currency, .usd)
+  }
+  
   // MARK: - Testing Comparison
   func testIsPositive() {
     let money = Money(amount: 2000, currency: .usd)  // 20 $

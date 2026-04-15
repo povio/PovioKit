@@ -5,6 +5,7 @@
 //
 
 import XCTest
+import AVFoundation
 @testable import PovioKitUtilities
 
 final class MediaPlayerBehaviorTests: XCTestCase {
@@ -80,6 +81,15 @@ final class MediaPlayerBehaviorTests: XCTestCase {
     player.replaceCurrentItem(with: nil)
     
     XCTAssertEqual(player.playbackInterval.startAt, 0, accuracy: 0.001)
+  }
+  
+  func testReplaceCurrentItemMultipleTimesDoesNotCrash() {
+    let player = MediaPlayer()
+    let item = AVPlayerItem(url: URL(fileURLWithPath: "/tmp/nonexistent-audio.m4a"))
+    
+    XCTAssertNoThrow(player.replaceCurrentItem(with: item))
+    XCTAssertNoThrow(player.replaceCurrentItem(with: item))
+    XCTAssertNoThrow(player.replaceCurrentItem(with: nil))
   }
   
   func testPlayFromAndPlayRangeInvalidInputDoesNotCrash() {

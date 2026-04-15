@@ -88,4 +88,23 @@ final class DispatchTimerTests: XCTestCase {
       XCTAssertFalse(timer.isActive)
     }
   }
+  
+  func test_dispatchTimer_schedule_replacesPreviouslyScheduledTimer() {
+    let timer = DispatchTimer()
+    let promise = expectation(description: "Second timer executes")
+    var firstFired = false
+    var secondFired = false
+    
+    timer.schedule(interval: .milliseconds(120), repeating: false, on: .main) {
+      firstFired = true
+    }
+    timer.schedule(interval: .milliseconds(20), repeating: false, on: .main) {
+      secondFired = true
+      promise.fulfill()
+    }
+    
+    waitForExpectations(timeout: 0.5)
+    XCTAssertTrue(secondFired)
+    XCTAssertFalse(firstFired)
+  }
 }
