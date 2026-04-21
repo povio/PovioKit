@@ -8,6 +8,12 @@
 
 import Foundation
 
+/// A lightweight weak-delegate helper that invokes a closure on the captured
+/// object, returning `Output?` (nil when no delegate was attached).
+///
+/// Specializations for `Output == Void` return `Void` directly; in that case
+/// the absence of a delegate is silently ignored — the typical
+/// "fire-and-forget" UI callback pattern.
 public struct Delegated<Input, Output> {
   typealias Callback = (Input) -> Output
   private var callback: Callback?
@@ -20,9 +26,10 @@ public struct Delegated<Input, Output> {
     }
   }
   
-  public func callAsFunction(_ arg: Input) -> Output {
-    guard let result = callback?(arg) else { fatalError("Implement the delegate method!") }
-    return result
+  /// Invokes the delegate and returns its `Output`, or `nil` if no delegate
+  /// has been attached yet.
+  public func callAsFunction(_ arg: Input) -> Output? {
+    callback?(arg)
   }
 }
 
@@ -33,9 +40,10 @@ public extension Delegated where Input == Void {
     }
   }
   
-  func callAsFunction() -> Output {
-    guard let result = callback?(()) else { fatalError("Implement the delegate method!") }
-    return result
+  /// Invokes the delegate and returns its `Output`, or `nil` if no delegate
+  /// has been attached yet.
+  func callAsFunction() -> Output? {
+    callback?(())
   }
 }
 

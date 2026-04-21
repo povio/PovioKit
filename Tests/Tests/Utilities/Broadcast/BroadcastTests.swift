@@ -10,6 +10,12 @@ import XCTest
 import PovioKitCore
 import PovioKitUtilities
 
+// Main-actor isolation matches how `XCTestCase` already drives these
+// test methods. `Broadcast.invoke(on:)` hops to `.main` in several
+// cases, and running the tests on the main actor means the closures
+// we hand to `invoke` can capture `self` without Swift 6 flagging the
+// hand-off as a "sending non-Sendable value" data race.
+@MainActor
 class BroadcastTests: XCTestCase {
 
   func testWillNotifyListenerWhenBroadcastInvoked() {
@@ -38,15 +44,16 @@ class BroadcastTests: XCTestCase {
     let sut = Broadcast<MockedProtocol>()
     let listener = MockedListener()
     let expectation = self.expectation(description: "delay")
-    var invokedOnMainThread = false
+    let invokedOnMainThread = BroadcastLockedBox<Bool>()
+    invokedOnMainThread.set(false)
     sut.add(observer: listener)
     sut.invoke(on: .main) {
       $0.run()
       expectation.fulfill()
-      invokedOnMainThread = Thread.current.isMainThread
+      invokedOnMainThread.set(Thread.current.isMainThread)
     }
     waitForExpectations(timeout: 1, handler: nil)
-    XCTAssert(invokedOnMainThread, "Listener should be notified on the main thread")
+    XCTAssertEqual(invokedOnMainThread.value, true, "Listener should be notified on the main thread")
   }
   
   func testWillNotifyListenerTwiceWhenBroadcastInvokedTwice() {
@@ -103,9 +110,21 @@ class BroadcastTests: XCTestCase {
     sut.invoke { $0.run() }
     XCTAssertEqual(count - removeCount, listeners.map { $0.executingCount }.reduce(0, +))
   }
+  
+  func testWeaklyHeldObserversAreAutomaticallyPruned() {
+    let sut = Broadcast<MockedProtocol>()
+    var listener: MockedListener? = MockedListener()
+    sut.add(observer: listener!)
+    XCTAssertEqual(sut.observerCount, 1, "Listener should be counted while alive")
+    
+    listener = nil
+    
+    // `observerCount` prunes stale references before returning.
+    XCTAssertEqual(sut.observerCount, 0, "Stale weak references should be pruned")
+  }
 }
 
-private protocol MockedProtocol {
+private protocol MockedProtocol: AnyObject {
   func run()
 }
 
@@ -114,5 +133,19 @@ private class MockedListener: MockedProtocol {
   
   func run() {
     executingCount += 1
+  }
+}
+
+/// Thread-safe box for observing scalar values from `@Sendable` closures.
+private final class BroadcastLockedBox<Value>: @unchecked Sendable {
+  private let lock = NSLock()
+  private var storage: Value?
+
+  func set(_ value: Value) {
+    lock.withLock { storage = value }
+  }
+
+  var value: Value? {
+    lock.withLock { storage }
   }
 }

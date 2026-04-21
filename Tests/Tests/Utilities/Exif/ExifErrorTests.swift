@@ -129,6 +129,8 @@ final class ExifErrorTests: XCTestCase {
         matched = true
       case .copyImageSource:
         matched = true
+      case .setMetadataValue:
+        matched = true
       }
       
       XCTAssertTrue(matched, "Error \(error) should be handled in switch")

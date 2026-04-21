@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import PovioKitCore
 import PovioKitUtilities
 
 final class MoneyExtensionsTests: XCTestCase {

@@ -7,7 +7,12 @@
 //
 
 #if os(iOS)
-import AVFoundation
+// `AVCapturePhotoSettings` is not annotated `Sendable` by AVFoundation even
+// though it's safe to hand across queues in the way we do here. Import as
+// `@preconcurrency` so those `Sendable`-related warnings don't leak into
+// downstream targets.
+@preconcurrency import AVFoundation
+import CoreGraphics
 import UIKit
 
 public protocol PhotoCameraDelegate: AnyObject {
@@ -15,7 +20,7 @@ public protocol PhotoCameraDelegate: AnyObject {
   func photoCamera(_ photoCamera: PhotoCamera, didTriggerError error: Camera.Error)
 }
 
-public class PhotoCamera: Camera {
+public class PhotoCamera: Camera, @unchecked Sendable {
   public weak var delegate: PhotoCameraDelegate?
   private let photoOutput = AVCapturePhotoOutput()
   private var deviceInput: AVCaptureDeviceInput?
@@ -44,15 +49,29 @@ public extension PhotoCamera {
     try configure()
   }
   
+  /// Captures a photo.
+  ///
+  /// - Parameters:
+  ///   - isHighResolutionPhotoEnabled: Whether to capture at the output's
+  ///     `maxPhotoDimensions` instead of the zero-size default.
+  ///   - qualityPrioritization: Relative balance between speed and quality.
+  ///   - flashMode: Flash policy for this capture, applied only when the
+  ///     output supports the requested mode.
+  ///   - videoRotationAngle: Rotation angle (in degrees) to apply to the
+  ///     capture connection. When `nil`, the preview layer's current angle
+  ///     is used. Typical values are `0`, `90`, `180`, `270`. When the
+  ///     computed angle is unsupported by the connection, portrait (`90`)
+  ///     is used as a fallback — matching the pre-7.0 `.portrait` default.
+  ///
+  /// > Note: Replaces the previous `videoOrientation: AVCaptureVideoOrientation?`
+  ///   parameter, which relied on APIs deprecated in iOS 17.
   func takePhoto(
     isHighResolutionPhotoEnabled: Bool = true,
     qualityPrioritization: AVCapturePhotoOutput.QualityPrioritization = .balanced,
     flashMode: AVCaptureDevice.FlashMode = .auto,
-    videoOrientation: AVCaptureVideoOrientation? = nil
+    videoRotationAngle: CGFloat? = nil
   ) {
-    let videoOrientation = (videoOrientation != nil) 
-    ? videoOrientation
-    : previewLayer.connection?.videoOrientation
+    let requestedRotationAngle = videoRotationAngle ?? previewLayer.connection?.videoRotationAngle
     sessionQueue.async {
       guard self.session.isRunning else {
         DispatchQueue.main.async {
@@ -68,7 +87,7 @@ public extension PhotoCamera {
         photoSettings.flashMode = flashMode
       }
       if let photoOutputConnection = self.photoOutput.connection(with: .video) {
-        photoOutputConnection.videoOrientation = videoOrientation ?? .portrait
+        Self.applyRotationAngle(requestedRotationAngle, to: photoOutputConnection)
       }
       if let firstAvailablePreviewPhotoPixelFormatTypes = photoSettings.availablePreviewPhotoPixelFormatTypes.first {
         photoSettings.previewPhotoFormat = [kCVPixelBufferPixelFormatTypeKey as String: firstAvailablePreviewPhotoPixelFormatTypes]
@@ -80,9 +99,9 @@ public extension PhotoCamera {
   
   func takePhoto(
     with photoSettings: AVCapturePhotoSettings,
-    videoOrientation: AVCaptureVideoOrientation? = nil
+    videoRotationAngle: CGFloat? = nil
   ) {
-    let videoOrientation = (videoOrientation != nil) ? videoOrientation : previewLayer.connection?.videoOrientation
+    let requestedRotationAngle = videoRotationAngle ?? previewLayer.connection?.videoRotationAngle
     sessionQueue.async {
       guard self.session.isRunning else {
         DispatchQueue.main.async { self.delegate?.photoCamera(self, didTriggerError: .missingSession) }
@@ -90,7 +109,7 @@ public extension PhotoCamera {
       }
       
       if let photoOutputConnection = self.photoOutput.connection(with: .video) {
-        photoOutputConnection.videoOrientation = videoOrientation ?? .portrait
+        Self.applyRotationAngle(requestedRotationAngle, to: photoOutputConnection)
       }
       
       self.photoOutput.capturePhoto(with: photoSettings, delegate: self)
@@ -115,34 +134,53 @@ extension PhotoCamera: AVCapturePhotoCaptureDelegate {
 
 // MARK: - Private Methods
 private extension PhotoCamera {
+  /// Portrait orientation expressed as a `videoRotationAngle` — the default
+  /// used by pre-iOS-17 code via `AVCaptureVideoOrientation.portrait`.
+  static var defaultPortraitRotationAngle: CGFloat { 90 }
+  
+  /// Applies the requested rotation angle to a capture connection, falling
+  /// back to portrait when either no angle was requested or the connection
+  /// reports the requested angle as unsupported. Silently no-ops when
+  /// neither the requested angle nor the portrait fallback is accepted.
+  static func applyRotationAngle(_ requestedAngle: CGFloat?, to connection: AVCaptureConnection) {
+    let candidates = [requestedAngle, defaultPortraitRotationAngle].compactMap { $0 }
+    for angle in candidates where connection.isVideoRotationAngleSupported(angle) {
+      connection.videoRotationAngle = angle
+      return
+    }
+  }
+  
+  /// Reconfigures the capture session. Runs on `sessionQueue` so topology
+  /// mutation is serialized with `startSession()` / `stopSession()` and
+  /// with concurrent reconfigures triggered by `setCameraPosition(_:)`
+  /// or `setDeviceType(_:)`.
   func configure() throws {
-    guard let device = device else { throw Camera.Error.unavailable }
-    
-    session.beginConfiguration()
-    session.sessionPreset = .photo
-    
-    // remove previous input if any
-    if let previousDeviceInput = self.deviceInput {
-      session.removeInput(previousDeviceInput)
-    }
-    
-    // prepare input
-    guard let deviceInput = try? AVCaptureDeviceInput(device: device), session.canAddInput(deviceInput) else {
-      throw Camera.Error.missingInput
-    }
-    
-    self.deviceInput = deviceInput
-    session.addInput(deviceInput)
-    
-    // prepare output
-    if !session.outputs.contains(photoOutput) {
-      guard session.canAddOutput(photoOutput) else {
-        throw Camera.Error.missingOutput
+    try onSessionQueue {
+      guard let device = device else { throw Camera.Error.unavailable }
+
+      session.beginConfiguration()
+      defer { session.commitConfiguration() }
+
+      session.sessionPreset = .photo
+
+      if let previousDeviceInput = self.deviceInput {
+        session.removeInput(previousDeviceInput)
       }
-      session.addOutput(photoOutput)
+
+      guard let deviceInput = try? AVCaptureDeviceInput(device: device), session.canAddInput(deviceInput) else {
+        throw Camera.Error.missingInput
+      }
+
+      self.deviceInput = deviceInput
+      session.addInput(deviceInput)
+
+      if !session.outputs.contains(photoOutput) {
+        guard session.canAddOutput(photoOutput) else {
+          throw Camera.Error.missingOutput
+        }
+        session.addOutput(photoOutput)
+      }
     }
-    
-    session.commitConfiguration()
   }
 }
 

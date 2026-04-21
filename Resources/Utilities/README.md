@@ -22,4 +22,3 @@ Utilities package including utility tools.
 | [Property wrapper: UserDefaults](PropertyWrapper/UserDefault) |
 | [Property wrapper: XCConfigValue](PropertyWrapper/XCConfigValue) |
 | [StartupService](StartupService) |
-| [Throttler](Throttler) |
