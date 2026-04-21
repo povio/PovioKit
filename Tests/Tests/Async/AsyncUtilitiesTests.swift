@@ -173,4 +173,13 @@ final class AsyncUtilitiesTests: XCTestCase {
       XCTAssertEqual(error as? RaceTestError, .failed)
     }
   }
+
+  func testRaceThrowsOnEmptyOperations() async {
+    do {
+      let _: Int = try await race([])
+      XCTFail("Expected race([]) to throw RaceError.noOperations")
+    } catch {
+      XCTAssertEqual(error as? RaceError, .noOperations)
+    }
+  }
 }

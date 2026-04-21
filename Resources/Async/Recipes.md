@@ -5,7 +5,7 @@ Real-world patterns that combine multiple async utilities.
 ## Debounced Search With Timeout And Retry
 
 ```swift
-for try await query in queryStream.debounce(
+for try await query in queryStream.sample(
   clock: .suspending,
   delayBetweenElements: .milliseconds(300)
 ) {

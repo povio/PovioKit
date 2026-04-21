@@ -8,7 +8,7 @@
 import Foundation
 
 /// Error thrown by timeout helpers when the configured deadline is reached.
-public enum AsyncTimeoutError: Error, Equatable {
+public enum AsyncTimeoutError: Error, Equatable, Sendable {
   case timedOut
 }
 
@@ -73,7 +73,7 @@ public struct AsyncRetryPolicy: Equatable, Sendable {
 ///   try await apiClient.fetchUser()
 /// }
 /// ```
-public func retry<R, C: Clock>(
+public func retry<R: Sendable, C: Clock>(
   policy: AsyncRetryPolicy = .init(),
   clock: C,
   shouldRetry: @escaping @Sendable (Error) -> Bool = { _ in true },
@@ -116,7 +116,7 @@ public func retry<R, C: Clock>(
 ///   try await configService.load()
 /// }
 /// ```
-public func retry<R>(
+public func retry<R: Sendable>(
   policy: AsyncRetryPolicy = .init(),
   shouldRetry: @escaping @Sendable (Error) -> Bool = { _ in true },
   operation: @escaping @Sendable () async throws -> R
@@ -139,7 +139,7 @@ public func retry<R>(
 ///   try await imageService.downloadAvatar()
 /// }
 /// ```
-public func withTimeout<R, C: Clock>(
+public func withTimeout<R: Sendable, C: Clock>(
   _ timeout: C.Duration,
   clock: C,
   operation: @escaping @Sendable () async throws -> R
@@ -171,7 +171,7 @@ public func withTimeout<R, C: Clock>(
 ///   try await expensiveComputation()
 /// }
 /// ```
-public func withTimeout<R>(
+public func withTimeout<R: Sendable>(
   _ timeout: Duration,
   operation: @escaping @Sendable () async throws -> R
 ) async throws -> R {
@@ -189,7 +189,7 @@ public func withTimeout<R>(
 ///   { try await networkClient.fetch() }
 /// )
 /// ```
-public func race<R>(
+public func race<R: Sendable>(
   _ operations: (@Sendable () async throws -> R)...
 ) async throws -> R {
   try await race(operations)
@@ -198,10 +198,14 @@ public func race<R>(
 /// Runs multiple operations concurrently and returns the first completed result.
 ///
 /// Remaining operations are cancelled as soon as the first one completes.
-public func race<R>(
+///
+/// - Throws: `RaceError.noOperations` when called with an empty list,
+///   any error thrown by the first-completing operation, or `CancellationError`
+///   on task cancellation.
+public func race<R: Sendable>(
   _ operations: [@Sendable () async throws -> R]
 ) async throws -> R {
-  precondition(!operations.isEmpty, "At least one operation is required.")
+  guard !operations.isEmpty else { throw RaceError.noOperations }
 
   return try await withThrowingTaskGroup(of: R.self) { group in
     for operation in operations {
@@ -211,11 +215,20 @@ public func race<R>(
     }
 
     guard let first = try await group.next() else {
-      throw AsyncTimeoutError.timedOut
+      // Unreachable under normal circumstances — `group.next()` only returns
+      // `nil` once all added tasks have completed, and we require at least
+      // one operation above. This remains as a safety net.
+      throw RaceError.noOperations
     }
     group.cancelAll()
     return first
   }
+}
+
+/// Errors specific to ``race(_:)``.
+public enum RaceError: Error, Sendable, Equatable {
+  /// Thrown when ``race(_:)`` is invoked with an empty operation list.
+  case noOperations
 }
 
 /// Wrapper around an `AsyncStream` and its continuation.
@@ -266,12 +279,8 @@ public struct AsyncThrowingStreamPipe<Element>: Sendable where Element: Sendable
 public func makeAsyncStream<Element: Sendable>(
   bufferingPolicy: AsyncStream<Element>.Continuation.BufferingPolicy = .unbounded
 ) -> AsyncStreamPipe<Element> {
-  let state = NSLockValueBox<AsyncStream<Element>.Continuation?>(wrappedValue: nil)
-  let stream = AsyncStream<Element>(bufferingPolicy: bufferingPolicy) { continuation in
-    state.withLock { $0 = continuation }
-  }
-
-  return .init(stream: stream, continuation: state.withLock { $0! })
+  let (stream, continuation) = AsyncStream<Element>.makeStream(of: Element.self, bufferingPolicy: bufferingPolicy)
+  return .init(stream: stream, continuation: continuation)
 }
 
 /// Creates a throwing stream and continuation pair for callback-based event sources.
@@ -291,27 +300,12 @@ public func makeAsyncStream<Element: Sendable>(
 public func makeAsyncThrowingStream<Element: Sendable>(
   bufferingPolicy: AsyncThrowingStream<Element, Error>.Continuation.BufferingPolicy = .unbounded
 ) -> AsyncThrowingStreamPipe<Element> {
-  let state = NSLockValueBox<AsyncThrowingStream<Element, Error>.Continuation?>(wrappedValue: nil)
-  let stream = AsyncThrowingStream<Element, Error>(bufferingPolicy: bufferingPolicy) { continuation in
-    state.withLock { $0 = continuation }
-  }
-
-  return .init(stream: stream, continuation: state.withLock { $0! })
-}
-
-private final class NSLockValueBox<Value>: @unchecked Sendable {
-  private let lock = NSLock()
-  private var value: Value
-
-  init(wrappedValue: Value) {
-    self.value = wrappedValue
-  }
-
-  func withLock<R>(_ operation: (inout Value) throws -> R) rethrows -> R {
-    lock.lock()
-    defer { lock.unlock() }
-    return try operation(&value)
-  }
+  let (stream, continuation) = AsyncThrowingStream<Element, Error>.makeStream(
+    of: Element.self,
+    throwing: Error.self,
+    bufferingPolicy: bufferingPolicy
+  )
+  return .init(stream: stream, continuation: continuation)
 }
 
 private func randomDuration(upTo maxDuration: Duration) -> Duration {
