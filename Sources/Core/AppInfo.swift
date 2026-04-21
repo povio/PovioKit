@@ -70,11 +70,17 @@ public enum AppInfo {
       guard let safariUrl = URL(string: "x-safari-\(url.absoluteString)") else { return false }
       targetUrl = safariUrl
     }
+    // The default handlers touch `UIApplication.shared`, which is main-actor
+    // isolated. `MainActor.assumeIsolated` preserves the existing
+    // non-isolated API contract while satisfying Swift 6's strict concurrency
+    // checker. Callers that invoke these handlers off-main will still trap
+    // at the `assumeIsolated` precondition — which is the correct behavior
+    // because `UIApplication.open(_:options:)` is main-thread only anyway.
     let canOpen = AppInfoURLHandlerStore.canOpenUrlHandlerForTesting ?? { target in
-      UIApplication.shared.canOpenURL(target)
+      MainActor.assumeIsolated { UIApplication.shared.canOpenURL(target) }
     }
     let open = AppInfoURLHandlerStore.openUrlHandlerForTesting ?? { target in
-      UIApplication.shared.open(target, options: [:])
+      MainActor.assumeIsolated { UIApplication.shared.open(target, options: [:]) }
     }
     guard canOpen(targetUrl) else { return false }
     open(targetUrl)
@@ -97,24 +103,28 @@ public enum AppInfo {
 #endif
   }
   
-  /// Returns the bundle identifier.
-  public static var bundleId: String {
-    Bundle.main.object(forInfoDictionaryKey: "CFBundleIdentifier") as? String ?? "/"
+  /// Returns the bundle identifier, or `nil` if the `Info.plist` does not
+  /// contain `CFBundleIdentifier`.
+  public static var bundleId: String? {
+    Bundle.main.object(forInfoDictionaryKey: "CFBundleIdentifier") as? String
   }
   
-  /// Returns the app name.
-  public static var name: String {
-    Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "/"
+  /// Returns the app name, or `nil` if the `Info.plist` does not contain
+  /// `CFBundleName`.
+  public static var name: String? {
+    Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String
   }
   
-  /// Returns the app build number, for example `84`.
-  public static var build: String {
-    Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String ?? "/"
+  /// Returns the app build number (for example `84`), or `nil` if the
+  /// `Info.plist` does not contain `CFBundleVersion`.
+  public static var build: String? {
+    Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
   }
   
-  /// Returns the app version, for example `1.9.3`.
-  public static var version: String {
-    Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "/"
+  /// Returns the app version (for example `1.9.3`), or `nil` if the
+  /// `Info.plist` does not contain `CFBundleShortVersionString`.
+  public static var version: String? {
+    Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
   }
 }
 
@@ -122,7 +132,38 @@ public enum AppInfo {
 ///
 /// Tests can inject handlers to avoid external side effects (opening App Store,
 /// Phone app, or browser) while still verifying URL-building behavior.
+///
+/// Access is serialised behind `lock`, which lets the handlers be read from
+/// the main thread (production callers) and written from the test thread
+/// without data races.
 enum AppInfoURLHandlerStore {
-  static var canOpenUrlHandlerForTesting: ((URL) -> Bool)?
-  static var openUrlHandlerForTesting: ((URL) -> Void)?
+  private static let lock = NSLock()
+  nonisolated(unsafe) private static var _canOpenUrlHandlerForTesting: (@Sendable (URL) -> Bool)?
+  nonisolated(unsafe) private static var _openUrlHandlerForTesting: (@Sendable (URL) -> Void)?
+  
+  static var canOpenUrlHandlerForTesting: (@Sendable (URL) -> Bool)? {
+    get {
+      lock.lock()
+      defer { lock.unlock() }
+      return _canOpenUrlHandlerForTesting
+    }
+    set {
+      lock.lock()
+      defer { lock.unlock() }
+      _canOpenUrlHandlerForTesting = newValue
+    }
+  }
+  
+  static var openUrlHandlerForTesting: (@Sendable (URL) -> Void)? {
+    get {
+      lock.lock()
+      defer { lock.unlock() }
+      return _openUrlHandlerForTesting
+    }
+    set {
+      lock.lock()
+      defer { lock.unlock() }
+      _openUrlHandlerForTesting = newValue
+    }
+  }
 }

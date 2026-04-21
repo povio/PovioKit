@@ -10,16 +10,42 @@ import XCTest
 @testable import PovioKitCore
 
 final class AppInfoTests: XCTestCase {
-  private final class URLOpenSpy {
-    private(set) var openedUrls: [URL] = []
-    var shouldAllowOpening = true
+  private final class URLOpenSpy: @unchecked Sendable {
+    // Access is serialised by `lock` so tests observing from a background
+    // queue remain safe under strict concurrency.
+    private let lock = NSLock()
+    private var _openedUrls: [URL] = []
+    private var _shouldAllowOpening = true
+    
+    var openedUrls: [URL] {
+      lock.lock()
+      defer { lock.unlock() }
+      return _openedUrls
+    }
+    
+    var shouldAllowOpening: Bool {
+      get {
+        lock.lock()
+        defer { lock.unlock() }
+        return _shouldAllowOpening
+      }
+      set {
+        lock.lock()
+        defer { lock.unlock() }
+        _shouldAllowOpening = newValue
+      }
+    }
     
     func canOpen(_ url: URL) -> Bool {
-      shouldAllowOpening
+      lock.lock()
+      defer { lock.unlock() }
+      return _shouldAllowOpening
     }
     
     func open(_ url: URL) {
-      openedUrls.append(url)
+      lock.lock()
+      defer { lock.unlock() }
+      _openedUrls.append(url)
     }
   }
   
@@ -30,68 +56,58 @@ final class AppInfoTests: XCTestCase {
   }
   
   private func installSpy(_ spy: URLOpenSpy) {
-    AppInfoURLHandlerStore.canOpenUrlHandlerForTesting = spy.canOpen
-    AppInfoURLHandlerStore.openUrlHandlerForTesting = spy.open
+    AppInfoURLHandlerStore.canOpenUrlHandlerForTesting = { url in spy.canOpen(url) }
+    AppInfoURLHandlerStore.openUrlHandlerForTesting = { url in spy.open(url) }
   }
   
   // MARK: - Bundle Properties
   
-  func testBundleIdIsNotEmpty() {
-    let bundleId = AppInfo.bundleId
-    
-    XCTAssertFalse(bundleId.isEmpty, "Bundle ID should not be empty")
+  func testBundleIdIsNilOrNonEmpty() {
+    if let bundleId = AppInfo.bundleId {
+      XCTAssertFalse(bundleId.isEmpty, "Bundle ID should not be empty when present")
+    }
   }
   
-  func testBundleIdFormat() {
-    let bundleId = AppInfo.bundleId
-    
+  func testBundleIdFormatWhenPresent() {
+    guard let bundleId = AppInfo.bundleId else { return }
     // Bundle IDs typically contain at least one period
     XCTAssertTrue(bundleId.contains(".") || bundleId.count > 0, "Bundle ID should be valid format")
   }
   
-  func testNameIsNotEmpty() {
-    let name = AppInfo.name
-    
-    XCTAssertFalse(name.isEmpty, "App name should not be empty")
+  func testNameIsNilOrNonEmpty() {
+    if let name = AppInfo.name {
+      XCTAssertFalse(name.isEmpty, "App name should not be empty when present")
+    }
   }
   
-  func testNameExists() {
-    let name = AppInfo.name
-    
-    XCTAssertGreaterThan(name.count, 0, "App name should have characters")
+  func testBuildIsNilOrNonEmpty() {
+    if let build = AppInfo.build {
+      XCTAssertFalse(build.isEmpty, "Build number should not be empty when present")
+    }
   }
   
-  func testBuildIsNotEmpty() {
-    let build = AppInfo.build
-    
-    XCTAssertFalse(build.isEmpty, "Build number should not be empty")
-  }
-  
-  func testBuildIsNumericOrAlphanumeric() {
-    let build = AppInfo.build
-    
+  func testBuildIsNumericOrAlphanumericWhenPresent() {
+    guard let build = AppInfo.build else { return }
     // Build numbers are typically numeric or alphanumeric
     let isValid = !build.isEmpty && (build.allSatisfy { $0.isNumber || $0.isLetter || $0 == "." })
     XCTAssertTrue(isValid, "Build should be valid format")
   }
   
-  func testVersionIsNotEmpty() {
-    let version = AppInfo.version
-    
-    XCTAssertFalse(version.isEmpty, "Version should not be empty")
+  func testVersionIsNilOrNonEmpty() {
+    if let version = AppInfo.version {
+      XCTAssertFalse(version.isEmpty, "Version should not be empty when present")
+    }
   }
   
-  func testVersionFormat() {
-    let version = AppInfo.version
-    
+  func testVersionFormatWhenPresent() {
+    guard let version = AppInfo.version else { return }
     // Versions typically contain numbers and periods (e.g., "1.0.0")
     let hasNumbers = version.contains(where: { $0.isNumber })
     XCTAssertTrue(hasNumbers, "Version should contain numbers")
   }
   
-  func testVersionIsSemanticVersionFormat() {
-    let version = AppInfo.version
-    
+  func testVersionIsSemanticVersionFormatWhenPresent() {
+    guard let version = AppInfo.version else { return }
     // Should be able to split by periods
     let components = version.split(separator: ".")
     XCTAssertGreaterThanOrEqual(components.count, 1, "Version should have at least one component")
@@ -363,8 +379,8 @@ final class AppInfoTests: XCTestCase {
   }
   
   func testVersionStringForDisplay() {
-    let version = AppInfo.version
-    let build = AppInfo.build
+    let version = AppInfo.version ?? "-"
+    let build = AppInfo.build ?? "-"
     let displayString = "Version \(version) (\(build))"
     
     XCTAssertFalse(displayString.isEmpty, "Should be able to create version display string")

@@ -146,5 +146,48 @@ final class DateTests: XCTestCase {
     let daysDifference = calendar.dateComponents([.day], from: startOfWeek, to: endOfWeek).day ?? 0
     XCTAssertEqual(daysDifference, 6, "End of week should be 6 days after start of week")
   }
+  
+  // MARK: - Calendar Injection
+  
+  func testCustomCalendarChangesFirstWeekday() {
+    // Use a UTC-anchored ISO gregorian calendar with Monday as first weekday.
+    var monday = Calendar(identifier: .iso8601)
+    monday.firstWeekday = 2
+    monday.timeZone = TimeZone(identifier: "UTC")!
+    
+    // Use the same calendar with Sunday as first weekday (default for US locales).
+    var sunday = Calendar(identifier: .gregorian)
+    sunday.firstWeekday = 1
+    sunday.timeZone = TimeZone(identifier: "UTC")!
+    
+    let components = DateComponents(
+      calendar: sunday, timeZone: TimeZone(identifier: "UTC"),
+      year: 2024, month: 10, day: 9, hour: 12 // Wednesday
+    )
+    let date = components.date!
+    
+    let mondayStart = date.startOfWeek(using: monday)!
+    let sundayStart = date.startOfWeek(using: sunday)!
+    
+    let mondayDayOfWeek = monday.component(.weekday, from: mondayStart)
+    let sundayDayOfWeek = sunday.component(.weekday, from: sundayStart)
+    
+    XCTAssertEqual(mondayDayOfWeek, 2, "Monday-first calendar should return a Monday")
+    XCTAssertEqual(sundayDayOfWeek, 1, "Sunday-first calendar should return a Sunday")
+  }
+  
+  func testYearMonthDayUseSuppliedCalendar() {
+    var utc = Calendar(identifier: .gregorian)
+    utc.timeZone = TimeZone(identifier: "UTC")!
+    
+    let date = DateComponents(
+      calendar: utc, timeZone: TimeZone(identifier: "UTC"),
+      year: 2024, month: 3, day: 17
+    ).date!
+    
+    XCTAssertEqual(date.year(using: utc), 2024)
+    XCTAssertEqual(date.month(using: utc), 3)
+    XCTAssertEqual(date.day(using: utc), 17)
+  }
 }
 

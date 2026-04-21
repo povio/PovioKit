@@ -10,6 +10,10 @@ import XCTest
 import PovioKitCore
 import MapKit.MKAnnotationView
 
+// `MKAnnotationView.identifier` is a `@MainActor`-isolated class
+// property on recent SDKs, so the test method must be main-actor
+// isolated to reference it.
+@MainActor
 class MKAnnotationViewTests: XCTestCase {
   func test_identifier_returnsCorrectIdentifier() {
     let SUTs: [(expectedIdentifier: String, mkAnnotationView: MKAnnotationView.Type)] = [("CustomMKAnnotationView", CustomMKAnnotationView.self), ("OtherMKAnnotationView", OtherMKAnnotationView.self)]

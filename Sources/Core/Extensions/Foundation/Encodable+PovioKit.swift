@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum EncodableJSONError: Error, LocalizedError, Equatable {
+public enum EncodableJSONError: Error, LocalizedError, Equatable, Sendable {
   case invalidTopLevelObject
   
   public var errorDescription: String? {

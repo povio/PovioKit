@@ -12,20 +12,20 @@ import StoreKit
 public extension SKStoreReviewController {
   /// Request a review popup on the current scene.
   ///
+  /// Must be called from the main actor because both `UIApplication.shared`
+  /// and `SKStoreReviewController.requestReview(in:)` are main-actor isolated.
+  ///
   /// ## Example
   /// ```swift
   /// SKStoreReviewController.requestReviewInCurrentScene()
   /// ```
+  @MainActor
   static func requestReviewInCurrentScene() {
-    if #available(iOS 14.0, *) {
-      (UIApplication
-        .shared
-        .connectedScenes
-        .first { $0.activationState == .foregroundActive } as? UIWindowScene
-      ).map { requestReview(in: $0) }
-    } else {
-      requestReview()
-    }
+    (UIApplication
+      .shared
+      .connectedScenes
+      .first { $0.activationState == .foregroundActive } as? UIWindowScene
+    ).map { requestReview(in: $0) }
   }
 }
 #endif

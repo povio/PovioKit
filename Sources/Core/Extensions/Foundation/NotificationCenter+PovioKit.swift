@@ -13,12 +13,12 @@ import UIKit
 #endif
 
 /// A type that can be represented as `Notification.Name`.
-public protocol PovioNotificationRepresentable {
+public protocol PovioNotificationRepresentable: Sendable {
   var name: Notification.Name { get }
 }
 
 /// Unified app notification entrypoint.
-public enum AppNotification: Hashable, PovioNotificationRepresentable {
+public enum AppNotification: Hashable, Sendable, PovioNotificationRepresentable {
 #if canImport(UIKit)
   case onAppResume
   case onAppPause
@@ -70,7 +70,7 @@ public extension NotificationCenter {
     _ notification: N,
     object: Any? = nil,
     queue: OperationQueue? = .main,
-    callback: @escaping (Notification) -> Void
+    callback: @escaping @Sendable (Notification) -> Void
   ) -> NSObjectProtocol {
     NotificationCenter.default.addObserver(
       forName: notification.name,
@@ -85,7 +85,7 @@ public extension NotificationCenter {
     _ notifications: [N],
     object: Any? = nil,
     queue: OperationQueue? = .main,
-    callback: @escaping (N, Notification) -> Void
+    callback: @escaping @Sendable (N, Notification) -> Void
   ) -> [NSObjectProtocol] {
     notifications.map { notification in
       NotificationCenter.default.addObserver(
