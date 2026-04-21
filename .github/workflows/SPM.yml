@@ -9,8 +9,10 @@ permissions:
 
 jobs:
   swiftpm:
-    runs-on: macos-13
+    # `macos-13` runners were retired by GitHub Actions; align with the
+    # runner used by the other workflows in this repo (Tests.yml, Docs.yml).
+    runs-on: macos-26-xlarge
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
     - uses: MeilCli/swiftpm-update-check-action@v3
       id: outdated

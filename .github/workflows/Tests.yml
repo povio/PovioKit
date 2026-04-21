@@ -48,4 +48,41 @@ jobs:
         xcode-version: latest-stable
 
     - name: Run tests
-      run: env NSUnbufferedIO=YES swift test --no-parallel
+      # `--no-parallel` was previously required because tests shared global
+      # state (e.g. `UserDefaults.standard`). All tests now use isolated
+      # storage, so the CI run goes through the normal parallel scheduler.
+      run: env NSUnbufferedIO=YES swift test
+
+  # Ensures the package still builds for the declared minimum deployment
+  # targets (iOS 17 / macOS 14). We only build-for-testing here; many
+  # simulator runtimes that old are unavailable on current runners.
+  Build-Minimum-Deployment:
+    runs-on: macos-26-xlarge
+    steps:
+    - name: Cancel previous jobs
+      uses: styfle/cancel-workflow-action@0.12.1
+
+    - name: Checkout Repository
+      uses: actions/checkout@v5
+
+    - name: Load Latest Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - name: Build for iOS 17 deployment target (generic device)
+      run: |
+        set -o pipefail && env NSUnbufferedIO=YES xcodebuild build \
+          -scheme 'PovioKit-Package' \
+          -destination 'generic/platform=iOS' \
+          IPHONEOS_DEPLOYMENT_TARGET=17.0 \
+          ONLY_ACTIVE_ARCH=NO \
+          | xcpretty
+
+    - name: Build for macOS 14 deployment target
+      run: |
+        set -o pipefail && env NSUnbufferedIO=YES xcodebuild build \
+          -scheme 'PovioKit-Package' \
+          -destination 'platform=macOS' \
+          MACOSX_DEPLOYMENT_TARGET=14.0 \
+          | xcpretty
