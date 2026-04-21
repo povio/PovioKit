@@ -22,14 +22,14 @@ public extension URL {
     self.init(string: string)
   }
   
-  /// Append parameter to the URL.
+  /// Appends a query parameter to the URL.
   ///
   /// ## Example
   /// ```
   /// let someURL: URL = "https://povio.com"
   /// let newURL = someURL
   ///   .appending("accept", value: "developers")
-  ///   .appending("tech", value: "iOS"
+  ///   .appending("tech", value: "iOS")
   ///
   /// print(newURL) // https://povio.com?accept=developers&tech=iOS
   /// ```
@@ -66,15 +66,14 @@ public extension URL {
 extension URL: @retroactive ExpressibleByExtendedGraphemeClusterLiteral {}
 extension URL: @retroactive ExpressibleByUnicodeScalarLiteral {}
 extension Foundation.URL: Swift.ExpressibleByStringLiteral {
-  /// A failable initializer that allows a `URL` object to be created from a string literal.
+  /// Creates a `URL` object from a string literal.
   ///
-  /// This initializer enables a `URL` to be initialized directly from a string literal, which is
-  /// especially useful when working with URL objects in a concise way. If the string is not a valid
-  /// URL, it will trigger a runtime failure with a fatal error.
+  /// This initializer enables `URL` values to be initialized directly from string literals.
+  /// In debug builds, invalid literals trigger `assertionFailure` to surface programmer errors.
+  /// In other builds, invalid literals fall back to `about:blank`.
   ///
   /// - Parameter value: A string literal representing a URL.
-  /// - Precondition: The string literal must represent a valid URL. Otherwise, the program will
-  ///   terminate with a fatal error.
+  /// - Warning: Invalid literals indicate a programmer error and should be fixed at the call site.
   ///
   /// ## Example
   /// ```swift
@@ -82,9 +81,13 @@ extension Foundation.URL: Swift.ExpressibleByStringLiteral {
   /// print(myURL) // Prints: https://www.povio.com
   /// ```
   public init(stringLiteral value: String) {
-    guard let url = URL(string: value) else {
-      fatalError("Invalid URL string!")
+    if let url = URL(string: value) {
+      self = url
+      return
     }
-    self = url
+    #if DEBUG
+    assertionFailure("Invalid URL string literal: \(value)")
+    #endif
+    self = URL(string: "about:blank")!
   }
 }

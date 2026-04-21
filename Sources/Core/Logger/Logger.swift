@@ -6,13 +6,14 @@
 //  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
+import Foundation
 import OSLog
 
 public final class Logger {
   public typealias Parameters = [String: Any]
   public static let shared = Logger()
   public var logLevel: LogLevel = .none
-  
+
   private init() {}
 }
 
@@ -85,7 +86,7 @@ private extension Logger {
       messagePrint += "\(nl)\(groupedParams)"
     }
     
-    let category = "\(fileName) - \(function) - line \(line)"
+    let category = "\(fileName).\(function)"
     let logger = os.Logger(subsystem: Bundle.main.bundleIdentifier ?? "povioKit.logger", category: category)
     switch level {
     case .none:

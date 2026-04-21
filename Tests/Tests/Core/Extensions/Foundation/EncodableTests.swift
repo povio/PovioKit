@@ -7,6 +7,7 @@
 //
 
 import XCTest
+import PovioKitCore
 
 class EncodableTests: XCTestCase {
   func testEncode() {
@@ -17,6 +18,14 @@ class EncodableTests: XCTestCase {
       XCTAssertEqual(json["name"] as? String, "PovioKit")
     } catch {
       XCTFail("Could not encode TestRequest!")
+    }
+  }
+  
+  func testEncodeThrowsForTopLevelArray() {
+    let request = [TestRequest(id: 1, name: "PovioKit")]
+    
+    XCTAssertThrowsError(try request.toJSON(with: JSONEncoder())) { error in
+      XCTAssertEqual(error as? EncodableJSONError, .invalidTopLevelObject)
     }
   }
 }

@@ -14,11 +14,11 @@ class StringTests: XCTestCase {
     XCTAssertEqual("this-doesn't exist".localized(), "this-doesn't exist")
   }
   
-  func testTrimed() {
-    XCTAssertEqual("  test".trimed, "test")
-    XCTAssertEqual("test  ".trimed, "test")
-    XCTAssertEqual("  test  ".trimed, "test")
-    XCTAssertEqual("\n\n   test  \n\n".trimed, "test")
+  func testTrimmed() {
+    XCTAssertEqual("  test".trimmed, "test")
+    XCTAssertEqual("test  ".trimmed, "test")
+    XCTAssertEqual("  test  ".trimmed, "test")
+    XCTAssertEqual("\n\n   test  \n\n".trimmed, "test")
   }
   
   func testDigits() {
