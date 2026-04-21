@@ -11,6 +11,9 @@ import XCTest
 import PovioKitCore
 import PovioKitUIKit
 
+// `UIViewController` and its navigation item are main-actor isolated
+// in Swift 6.
+@MainActor
 class UIViewControllerTests: XCTestCase {  
   func test_setLeftBarButton_addsLeftBarButton() {
     let viewController = UIViewController()

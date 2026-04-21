@@ -11,8 +11,8 @@ import SwiftUI
 
 /// A view that asynchronously loads and displays an image from the provided URL.
 ///
-/// If Kingfisher is available, it uses `KFImage` for image loading to support caching,
-/// otherwise it falls back to SwiftUI's `AsyncImage`.
+/// Rendered via Kingfisher's `KFImage` to benefit from its memory and disk cache,
+/// fade transitions, and image processors.
 ///
 /// The `RemoteImage` can be parameterized with a custom placeholder view, an
 /// option for fade animation, and a Kingfisher image processor.
@@ -92,28 +92,21 @@ public struct RemoteImage<Placeholder: View>: View {
   
   public var body: some View {
     if let url {
-      let baseImage = KFImage(url)
-      if let processor {
-        baseImage
-          .setProcessor(processor)
-          .onSuccess(onSuccess)
-          .onFailure(onFailure)
-          .placeholder { placeholder }
-          .fade(duration: animated ? 0.25 : 0)
-          .resizable()
-          .scaledToFill()
-      } else {
-        baseImage
-          .onSuccess(onSuccess)
-          .onFailure(onFailure)
-          .placeholder { placeholder }
-          .fade(duration: animated ? 0.25 : 0)
-          .resizable()
-          .scaledToFill()
-      }
+      configuredImage(KFImage(url))
     } else {
       placeholder
     }
+  }
+
+  private func configuredImage(_ image: KFImage) -> some View {
+    let processed = processor.map { image.setProcessor($0) } ?? image
+    return processed
+      .onSuccess(onSuccess)
+      .onFailure(onFailure)
+      .placeholder { placeholder }
+      .fade(duration: animated ? 0.25 : 0)
+      .resizable()
+      .scaledToFill()
   }
 }
 

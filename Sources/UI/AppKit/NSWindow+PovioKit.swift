@@ -14,32 +14,23 @@ extension NSWindow {
     .init(origin: .zero, size: frame.size)
   }
   
-  /// Takes a screenshot of the window and returns it as an NSImage.
+  /// Captures the window's own content view into an `NSImage`.
+  ///
+  /// This uses AppKit's `cacheDisplay(in:to:)` rather than the deprecated
+  /// `CGWindowListCreateImage`, so it works without ScreenCaptureKit
+  /// entitlements. It also only captures *this* window's content, which
+  /// is what most callers want; anything drawn *on top* of the window by
+  /// other processes is intentionally not included.
   func takeScreenshot() -> NSImage? {
-    // not sure why we always target first screen insted of the current one
-    guard let screen = NSScreen.screens.first else { return nil }
-    let screenHeight = screen.frame.height
-    let windowRect = frame
-    let screenshotRect = NSRect(
-      x: windowRect.minX,
-      y: screenHeight - windowRect.minY - windowRect.height,
-      width: windowRect.width,
-      height: windowRect.height
-    )
-    
-    // make sure the window keeps its aspect ratio when resizing
-    aspectRatio = frame.size
-    alphaValue = 0.0
-    backgroundColor = .clear
-    
-    let screenshot = CGWindowListCreateImage(
-      screenshotRect,
-      .optionAll,
-      kCGNullWindowID,
-      .bestResolution
-    )
-    
-    return screenshot.map { NSImage(cgImage: $0, size: .zero) }
+    guard let contentView else { return nil }
+    let bounds = contentView.bounds
+    guard let bitmap = contentView.bitmapImageRepForCachingDisplay(in: bounds) else {
+      return nil
+    }
+    contentView.cacheDisplay(in: bounds, to: bitmap)
+    let image = NSImage(size: bounds.size)
+    image.addRepresentation(bitmap)
+    return image
   }
 }
 #endif
