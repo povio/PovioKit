@@ -7,7 +7,7 @@
         <img src="https://img.shields.io/badge/SPM-Swift-lightgrey.svg" />
     </a>
     <a href="https://www.swift.org" alt="Swift">
-        <img src="https://img.shields.io/badge/Swift-5-orange.svg" />
+        <img src="https://img.shields.io/badge/Swift-6-orange.svg" />
     </a>
     <a href="./LICENSE" alt="License">
         <img src="https://img.shields.io/badge/Licence-MIT-red.svg" />
@@ -28,7 +28,9 @@
 
 ## Platform Support
 
-| Product | iOS 16+ | macOS 13+ | Notes |
+Built with the Swift 6 toolchain and Swift 6 language mode.
+
+| Product | iOS 17+ | macOS 14+ | Notes |
 | :- | :-: | :-: | :- |
 | `PovioKitCore` | Yes | Yes | Foundation-first shared primitives and extensions. |
 | `PovioKitUtilities` | Yes | Yes | Some utilities are platform-specific; see module docs. |
