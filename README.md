@@ -43,10 +43,20 @@ Built with the Swift 6 toolchain and Swift 6 language mode.
 
 - API documentation is generated with DocC and published through GitHub Pages.
 - Published docs root: `https://povio.github.io/PovioKit/`
-- To build docs locally:
+- To build docs locally with Xcode (no extra setup):
 
 ```bash
 xcodebuild docbuild -destination 'platform=macOS' -scheme 'PovioKit-Package'
+```
+
+- To build docs via Swift Package Manager, opt into the `swift-docc-plugin`
+  dependency by exporting `POVIOKIT_BUILD_DOCS=1` first. The plugin is
+  intentionally not bundled unconditionally so PovioKit consumers don't have
+  to resolve it:
+
+```bash
+POVIOKIT_BUILD_DOCS=1 swift package --allow-writing-to-directory ./docs \
+  generate-documentation --target PovioKitCore --output-path ./docs
 ```
 
 ## Installation
