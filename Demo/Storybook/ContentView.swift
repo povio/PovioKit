@@ -51,6 +51,27 @@ struct ContentView: View {
               case .materialBlur:
                 MaterialBlurComponent()
                   .navigationTitle(component.name)
+              case .linearProgressStyle:
+                LinearProgressStyleComponent()
+                  .navigationTitle(component.name)
+              case .scrollViewWithOffset:
+                ScrollViewWithOffsetComponent()
+                  .navigationBarTitleDisplayMode(.inline)
+              case .deviceShake:
+                DeviceShakeComponent()
+                  .navigationTitle(component.name)
+              case .swiftUIExtras:
+                SwiftUIExtrasComponent()
+                  .navigationTitle(component.name)
+              case .money:
+                MoneyComponent()
+                  .navigationTitle(component.name)
+              case .retry:
+                RetryComponent()
+                  .navigationTitle(component.name)
+              case .asyncDebounce:
+                AsyncDebounceComponent()
+                  .navigationTitle(component.name)
               }
             }
             .navigationBarTitleDisplayMode(.large)

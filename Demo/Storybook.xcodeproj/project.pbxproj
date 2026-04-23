@@ -8,37 +8,18 @@
 
 /* Begin PBXBuildFile section */
 		990B5C8D2D2C0C7C00F2963F /* PovioKitSwiftUI in Frameworks */ = {isa = PBXBuildFile; productRef = 990B5C8C2D2C0C7C00F2963F /* PovioKitSwiftUI */; };
-		990B5C8F2D2C0CED00F2963F /* PhotoPickerComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 990B5C8E2D2C0CED00F2963F /* PhotoPickerComponent.swift */; };
-		993A4F7A2D6E0A6300AC2273 /* MaterialBlurComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 993A4F792D6E0A6300AC2273 /* MaterialBlurComponent.swift */; };
-		998E6EF7297E82F700D33909 /* StorybookApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998E6EF6297E82F700D33909 /* StorybookApp.swift */; };
-		998E6EF9297E82F700D33909 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998E6EF8297E82F700D33909 /* ContentView.swift */; };
-		998E6EFB297E82F800D33909 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 998E6EFA297E82F800D33909 /* Assets.xcassets */; };
-		998E6EFF297E82F800D33909 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 998E6EFE297E82F800D33909 /* Preview Assets.xcassets */; };
-		998E6F08297E8AE000D33909 /* Component.swift in Sources */ = {isa = PBXBuildFile; fileRef = 998E6F07297E8AE000D33909 /* Component.swift */; };
-		999EF5532D6E02F500F280E8 /* AnimatedImageComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999EF5522D6E02F500F280E8 /* AnimatedImageComponent.swift */; };
 		999EF7C42D6E041600F280E8 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 999EF7C32D6E041600F280E8 /* Kingfisher */; };
-		999EF7C62D6E069800F280E8 /* RemoteImageComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999EF7C52D6E069800F280E8 /* RemoteImageComponent.swift */; };
-		999EF7C82D6E081800F280E8 /* LinearProgressStyleComponent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 999EF7C72D6E081800F280E8 /* LinearProgressStyleComponent.swift */; };
+		99A1700000000000A0000002 /* PovioKitUtilities in Frameworks */ = {isa = PBXBuildFile; productRef = 99A1700000000000A0000001 /* PovioKitUtilities */; };
+		99A1700000000000A0000004 /* PovioKitAsync in Frameworks */ = {isa = PBXBuildFile; productRef = 99A1700000000000A0000003 /* PovioKitAsync */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		990B5C8E2D2C0CED00F2963F /* PhotoPickerComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoPickerComponent.swift; sourceTree = "<group>"; };
-		990C1776297E9D54005EC7B7 /* PovioKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = PovioKit; path = ../..; sourceTree = "<group>"; };
-		993A4F792D6E0A6300AC2273 /* MaterialBlurComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MaterialBlurComponent.swift; sourceTree = "<group>"; };
+		990C1776297E9D54005EC7B7 /* .. */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ..; sourceTree = "<group>"; };
 		998E6EF3297E82F700D33909 /* Storybook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Storybook.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		998E6EF6297E82F700D33909 /* StorybookApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorybookApp.swift; sourceTree = "<group>"; };
-		998E6EF8297E82F700D33909 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
-		998E6EFA297E82F800D33909 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		998E6EFC297E82F800D33909 /* Storybook.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Storybook.entitlements; sourceTree = "<group>"; };
-		998E6EFE297E82F800D33909 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		998E6F07297E8AE000D33909 /* Component.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Component.swift; sourceTree = "<group>"; };
-		999EF5522D6E02F500F280E8 /* AnimatedImageComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedImageComponent.swift; sourceTree = "<group>"; };
-		999EF7C52D6E069800F280E8 /* RemoteImageComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoteImageComponent.swift; sourceTree = "<group>"; };
-		999EF7C72D6E081800F280E8 /* LinearProgressStyleComponent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinearProgressStyleComponent.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9986B6EE2E2F90A100C393C2 /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Resources; sourceTree = "<group>"; };
+		998ABB042F9A4D3E00D7F734 /* Storybook */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = Storybook; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -48,6 +29,8 @@
 			files = (
 				999EF7C42D6E041600F280E8 /* Kingfisher in Frameworks */,
 				990B5C8D2D2C0C7C00F2963F /* PovioKitSwiftUI in Frameworks */,
+				99A1700000000000A0000002 /* PovioKitUtilities in Frameworks */,
+				99A1700000000000A0000004 /* PovioKitAsync in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -57,7 +40,7 @@
 		990C1775297E9D54005EC7B7 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				990C1776297E9D54005EC7B7 /* PovioKit */,
+				990C1776297E9D54005EC7B7 /* .. */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -73,7 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				990C1775297E9D54005EC7B7 /* Packages */,
-				998E6EF5297E82F700D33909 /* Storybook */,
+				998ABB042F9A4D3E00D7F734 /* Storybook */,
 				998E6EF4297E82F700D33909 /* Products */,
 				990C1777297E9D96005EC7B7 /* Frameworks */,
 			);
@@ -85,41 +68,6 @@
 				998E6EF3297E82F700D33909 /* Storybook.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		998E6EF5297E82F700D33909 /* Storybook */ = {
-			isa = PBXGroup;
-			children = (
-				9986B6EE2E2F90A100C393C2 /* Resources */,
-				998E6F0B297E936D00D33909 /* Components */,
-				998E6EF6297E82F700D33909 /* StorybookApp.swift */,
-				998E6EF8297E82F700D33909 /* ContentView.swift */,
-				998E6F07297E8AE000D33909 /* Component.swift */,
-				998E6EFA297E82F800D33909 /* Assets.xcassets */,
-				998E6EFC297E82F800D33909 /* Storybook.entitlements */,
-				998E6EFD297E82F800D33909 /* Preview Content */,
-			);
-			path = Storybook;
-			sourceTree = "<group>";
-		};
-		998E6EFD297E82F800D33909 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				998E6EFE297E82F800D33909 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-		998E6F0B297E936D00D33909 /* Components */ = {
-			isa = PBXGroup;
-			children = (
-				990B5C8E2D2C0CED00F2963F /* PhotoPickerComponent.swift */,
-				999EF5522D6E02F500F280E8 /* AnimatedImageComponent.swift */,
-				999EF7C52D6E069800F280E8 /* RemoteImageComponent.swift */,
-				999EF7C72D6E081800F280E8 /* LinearProgressStyleComponent.swift */,
-				993A4F792D6E0A6300AC2273 /* MaterialBlurComponent.swift */,
-			);
-			path = Components;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -138,12 +86,14 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				9986B6EE2E2F90A100C393C2 /* Resources */,
+				998ABB042F9A4D3E00D7F734 /* Storybook */,
 			);
 			name = Storybook;
 			packageProductDependencies = (
 				990B5C8C2D2C0C7C00F2963F /* PovioKitSwiftUI */,
 				999EF7C32D6E041600F280E8 /* Kingfisher */,
+				99A1700000000000A0000001 /* PovioKitUtilities */,
+				99A1700000000000A0000003 /* PovioKitAsync */,
 			);
 			productName = Storybook;
 			productReference = 998E6EF3297E82F700D33909 /* Storybook.app */;
@@ -190,8 +140,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				998E6EFF297E82F800D33909 /* Preview Assets.xcassets in Resources */,
-				998E6EFB297E82F800D33909 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -202,14 +150,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				998E6EF9297E82F700D33909 /* ContentView.swift in Sources */,
-				990B5C8F2D2C0CED00F2963F /* PhotoPickerComponent.swift in Sources */,
-				999EF5532D6E02F500F280E8 /* AnimatedImageComponent.swift in Sources */,
-				999EF7C62D6E069800F280E8 /* RemoteImageComponent.swift in Sources */,
-				998E6F08297E8AE000D33909 /* Component.swift in Sources */,
-				993A4F7A2D6E0A6300AC2273 /* MaterialBlurComponent.swift in Sources */,
-				999EF7C82D6E081800F280E8 /* LinearProgressStyleComponent.swift in Sources */,
-				998E6EF7297E82F700D33909 /* StorybookApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -353,17 +293,15 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
-				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.povio.Storybook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -392,17 +330,15 @@
 				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
 				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.2;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
-				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.povio.Storybook;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -452,6 +388,14 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 999EF7C22D6E041600F280E8 /* XCRemoteSwiftPackageReference "Kingfisher" */;
 			productName = Kingfisher;
+		};
+		99A1700000000000A0000001 /* PovioKitUtilities */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PovioKitUtilities;
+		};
+		99A1700000000000A0000003 /* PovioKitAsync */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PovioKitAsync;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
