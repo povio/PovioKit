@@ -22,6 +22,120 @@
       "url": "https://github.com/povio/PovioKit.git",
       "versions": [
         {
+          "defaultToolsVersion": "6.0",
+          "manifests": {
+            "6.0": {
+              "minimumPlatformVersions": [
+                {
+                  "name": "ios",
+                  "version": "17.0"
+                },
+                {
+                  "name": "macos",
+                  "version": "14.0"
+                }
+              ],
+              "packageName": "PovioKit",
+              "products": [
+                {
+                  "name": "PovioKitAsync",
+                  "targets": [
+                    "PovioKitAsync"
+                  ],
+                  "type": {
+                    "library": [
+                      "automatic"
+                    ]
+                  }
+                },
+                {
+                  "name": "PovioKitCore",
+                  "targets": [
+                    "PovioKitCore"
+                  ],
+                  "type": {
+                    "library": [
+                      "automatic"
+                    ]
+                  }
+                },
+                {
+                  "name": "PovioKitUtilities",
+                  "targets": [
+                    "PovioKitUtilities"
+                  ],
+                  "type": {
+                    "library": [
+                      "automatic"
+                    ]
+                  }
+                },
+                {
+                  "name": "PovioKitUIKit",
+                  "targets": [
+                    "PovioKitUIKit"
+                  ],
+                  "type": {
+                    "library": [
+                      "automatic"
+                    ]
+                  }
+                },
+                {
+                  "name": "PovioKitSwiftUI",
+                  "targets": [
+                    "PovioKitSwiftUI"
+                  ],
+                  "type": {
+                    "library": [
+                      "automatic"
+                    ]
+                  }
+                },
+                {
+                  "name": "PovioKitAppKit",
+                  "targets": [
+                    "PovioKitAppKit"
+                  ],
+                  "type": {
+                    "library": [
+                      "automatic"
+                    ]
+                  }
+                }
+              ],
+              "targets": [
+                {
+                  "moduleName": "PovioKitAsync",
+                  "name": "PovioKitAsync"
+                },
+                {
+                  "moduleName": "PovioKitCore",
+                  "name": "PovioKitCore"
+                },
+                {
+                  "moduleName": "PovioKitUtilities",
+                  "name": "PovioKitUtilities"
+                },
+                {
+                  "moduleName": "PovioKitUIKit",
+                  "name": "PovioKitUIKit"
+                },
+                {
+                  "moduleName": "PovioKitSwiftUI",
+                  "name": "PovioKitSwiftUI"
+                },
+                {
+                  "moduleName": "PovioKitAppKit",
+                  "name": "PovioKitAppKit"
+                }
+              ],
+              "toolsVersion": "6.0"
+            }
+          },
+          "version": "7.0.0"
+        },
+        {
           "defaultToolsVersion": "5.9",
           "manifests": {
             "5.9": {
@@ -133,7 +247,7 @@
               "toolsVersion": "5.9"
             }
           },
-          "version": "6.0.0"
+          "version": "6.2.0"
         }
       ]
     },

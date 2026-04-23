@@ -342,6 +342,20 @@ conformance.
 * Several empty directories (`Sources/Utilities/Retry`, `Timeout`,
   `Keychain`, `TaskCoalescer`, `Clock` and their test counterparts)
   have been removed. They did not contain any source files.
+* **`NSWindow.takeScreenshot()` (AppKit)** is now part of the public
+  API and has been re-implemented on top of `cacheDisplay(in:to:)`
+  instead of the deprecated `CGWindowListCreateImage`. Two behaviour
+  changes flow from this:
+  * The method now captures the window's own content view only, at the
+    content view's pixel bounds. Anything drawn *on top* of the window
+    by other processes, as well as transparent regions that used to
+    sample the desktop behind the window, are no longer included.
+  * It no longer mutates the window (`aspectRatio`, `alphaValue`,
+    `backgroundColor` are left alone) and no longer requires a
+    ScreenCaptureKit / screen-recording entitlement.
+  Callers that relied on the previous "sample the screen rect under
+  the window" behaviour must drop down to `SCScreenshotManager`
+  (ScreenCaptureKit) or `CGWindowListCreateImage` directly.
 
 ### Migration from versions < 6.3.0
 * [Async] `PovioKitAsync` was significantly expanded with:

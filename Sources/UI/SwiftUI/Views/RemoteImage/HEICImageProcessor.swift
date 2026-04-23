@@ -23,8 +23,9 @@ import CoreServices
 /// typically achieving 50% smaller file sizes at similar quality levels. This processor
 /// is ideal for iOS and macOS applications where maximum compression efficiency is desired.
 ///
-/// **Note:** HEIC format is supported on iOS 11+ and macOS 10.13+. On older systems,
-/// the processor will fall back to returning the original image.
+/// **Note:** HEIC format is natively supported on all PovioKit-supported platforms
+/// (iOS 17+, macOS 14+). If HEIC encoding is unavailable for any reason, the processor
+/// falls back to returning the original image.
 ///
 /// ## Example
 /// ```swift

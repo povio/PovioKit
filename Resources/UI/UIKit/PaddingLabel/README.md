@@ -1,13 +1,11 @@
-#  PaddingLabel
+# PaddingLabel
 
-A `UILabel` subclass with configurable `contentInset`.
-
-## Usage
+A `UILabel` subclass with a configurable `contentInset: UIEdgeInsets`
+that's applied to the label's intrinsic content size and draw rect.
 
 ```swift
 let label = PaddingLabel()
-label.contentInset = .init(all: 10) // added 10pt padding on all edges
+label.contentInset = .init(all: 10)
 ```
 
-## Source code
-You can find source code [here](/Sources/UI/UIKit/Views/PaddingLabel/PaddingLabel.swift).
+See source for the full API: [PaddingLabel.swift](/Sources/UI/UIKit/Views/PaddingLabel/PaddingLabel.swift).

@@ -6,10 +6,10 @@ Utilities package including utility tools.
 
 | Available Utilities |
 | :--- |
-| [AppVersionValidator](/Sources/Utilities/AppVersionValidator/AppVersionValidator.swift) |
+| [AppVersionValidator](AppVersionValidator) |
 | [AttributedStringBuilder](AttributedStringBuilder) |
 | [Broadcast](Broadcast) |
-| [BundleReader](/Sources/Utilities/BundleReader/BundleReader.swift) |
+| [BundleReader](BundleReader) |
 | [Camera](Camera) |
 | [ColorInterpolator](ColorInterpolator) |
 | [Delegated](Delegated) |

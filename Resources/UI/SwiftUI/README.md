@@ -8,14 +8,15 @@ A package including components to help you out developing for SwiftUI framework.
 | :--- | :--- | :--- |
 | [LinearProgressStyle](/Sources/UI/SwiftUI/Views/LinearProgressStyle/LinearProgressStyle.swift) | iOS | A custom linear ProgressView style |
 | [MaterialBlurView](/Sources/UI/SwiftUI/Views/MaterialBlurView/MaterialBlurView.swift) | all | Material blur effects view |
-| [PhotoPickerView](/Sources/UI/SwiftUI/Views/PhotoPickerView/PhotoPickerView.swift) | all | Photo and Camera picker view used in combination with `PhotoPickerModifier` |
-| [RemoteImage](/Sources/UI/SwiftUI/Views/RemoteImage/RemoteImage.swift) | all | Fetching remote images using Kingfisher |
+| [PhotoPickerView](Views/PhotoPickerView) | iOS | Photo and Camera picker view, used alone or via the `photoPicker` modifier. |
+| [RemoteImage](Views/RemoteImage) | all | Fetching remote images using Kingfisher, with placeholder / processor / callback support. |
 | [AnimatedImage](/Sources/UI/SwiftUI/Views/AnimatedImage/AnimatedImage.swift) | all | Fetching remote or local GIF images using Kingfisher |
-| [ScrollViewWithOffset](/Sources/UI/SwiftUI/Views/ScrollViewWithOffset/ScrollViewWithOffset.swift) | all | ScrollView that expose offset as we scroll |
+| [ScrollViewWithOffset](Views/ScrollViewWithOffset) | all | `ScrollView` that exposes offset as we scroll. |
 | [SimpleColorPicker](/Sources/UI/SwiftUI/Views/SimpleColorPicker/SimpleColorPicker.swift) | macOS | Wrapper for NSColorWell component |
 
 | View Modifiers | Platform | |
 | :--- | :--- | :--- |
+| [DeviceShakeViewModifier](/Sources/UI/SwiftUI/View%20Modifiers/DeviceShakeViewModifier.swift) | iOS | Adds an `.onShake { … }` modifier that fires when the app posts `AppNotification.deviceDidShake`. |
 | [MaterialBlurBackgroundModifier](/Sources/UI/SwiftUI/View%20Modifiers/MaterialBlurBackgroundModifier.swift) | all | Material blur effects modifier. |
 | [MeasureSizeModifier](/Sources/UI/SwiftUI/View%20Modifiers/MeasureSizeModifier.swift) | all | A modifier to return size of the underlying view |
 | [OnFirstAppearModifier](/Sources/UI/SwiftUI/View%20Modifiers/OnFirstAppearModifier.swift) | all | Similar to the `OnAppear` modifier, but only runs once per view lifecycle |

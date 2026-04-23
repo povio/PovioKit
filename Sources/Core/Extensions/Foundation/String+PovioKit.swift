@@ -81,7 +81,6 @@ public extension String {
   /// If the conversion fails (e.g., due to invalid markdown syntax), it returns the original string as an AttributedString.
   /// - Parameter options: Configures the markdown parsing behavior. Some developers have reported that the full parsing is too strict and sometimes
   /// doesn't render new lines. Use `.inlineOnlyPreservingWhitespace` for a more lenient parsing.
-  /// - Precondition: Requires iOS 15 and above.
   func toMarkdown(
     options: AttributedString.MarkdownParsingOptions = AttributedString.MarkdownParsingOptions(
       interpretedSyntax: .full
