@@ -28,10 +28,31 @@ jobs:
         xcode-version: latest-stable
 
     - name: Build project
-      run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild build-for-testing -destination 'name=iPhone 17 Pro,OS=26.1' -scheme 'PovioKit-Package' | xcpretty
+      run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild build-for-testing -destination 'name=iPhone 17 Pro,OS=26.4' -scheme 'PovioKit-Package' | xcpretty
 
+    # `-enableCodeCoverage YES` + `-resultBundlePath` make the xcresult bundle
+    # contain coverage data so the summary step below (and any future Codecov
+    # upload) can surface per-target numbers.
     - name: Run tests
-      run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild test-without-building -destination 'name=iPhone 17 Pro,OS=26.1' -scheme 'PovioKit-Package' | xcpretty      
+      run: |
+        set -o pipefail && env NSUnbufferedIO=YES xcodebuild test-without-building \
+          -destination 'name=iPhone 17 Pro,OS=26.4' \
+          -scheme 'PovioKit-Package' \
+          -enableCodeCoverage YES \
+          -resultBundlePath TestResults.xcresult \
+          | xcpretty
+
+    - name: Print coverage summary
+      if: always()
+      run: xcrun xccov view --report --only-targets TestResults.xcresult || true
+
+    - name: Upload coverage artifact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ios-coverage
+        path: TestResults.xcresult
+        retention-days: 7
 
   Tests-macOS:
     runs-on: macos-26-xlarge
@@ -51,7 +72,9 @@ jobs:
       # `--no-parallel` was previously required because tests shared global
       # state (e.g. `UserDefaults.standard`). All tests now use isolated
       # storage, so the CI run goes through the normal parallel scheduler.
-      run: env NSUnbufferedIO=YES swift test
+      # `--enable-code-coverage` makes SwiftPM emit a profdata bundle under
+      # `.build/debug/codecov/` for downstream tooling.
+      run: env NSUnbufferedIO=YES swift test --enable-code-coverage
 
   # Ensures the package still builds for the declared minimum deployment
   # targets (iOS 17 / macOS 14). We only build-for-testing here; many
