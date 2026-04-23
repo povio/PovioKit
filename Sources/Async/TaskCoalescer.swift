@@ -21,7 +21,13 @@ import Foundation
 /// }
 /// ```
 public actor TaskCoalescer<Key: Hashable & Sendable, Value: Sendable> {
-  private var tasks: [Key: Task<Value, Error>] = [:]
+  private struct Entry {
+    let id: UInt64
+    let task: Task<Value, Error>
+  }
+
+  private var tasks: [Key: Entry] = [:]
+  private var nextId: UInt64 = 0
 
   public init() {}
 
@@ -29,32 +35,35 @@ public actor TaskCoalescer<Key: Hashable & Sendable, Value: Sendable> {
     for key: Key,
     operation: @escaping @Sendable () async throws -> Value
   ) async throws -> Value {
-    if let existingTask = tasks[key] {
-      return try await existingTask.value
+    if let existing = tasks[key] {
+      return try await existing.task.value
     }
 
+    nextId &+= 1
+    let id = nextId
     let task = Task {
       try await operation()
     }
-    tasks[key] = task
+    tasks[key] = Entry(id: id, task: task)
 
-    do {
-      let value = try await task.value
-      tasks[key] = nil
-      return value
-    } catch {
-      tasks[key] = nil
-      throw error
+    defer {
+      // Only clear the slot if it still holds the same task; a concurrent
+      // cancel + new submission may have put a newer task in place already.
+      if tasks[key]?.id == id {
+        tasks[key] = nil
+      }
     }
+
+    return try await task.value
   }
 
   public func cancelValue(for key: Key) {
-    tasks[key]?.cancel()
-    tasks[key] = nil
+    guard let entry = tasks.removeValue(forKey: key) else { return }
+    entry.task.cancel()
   }
 
   public func cancelAll() {
-    let pendingTasks = tasks.values
+    let pendingTasks = tasks.values.map(\.task)
     tasks.removeAll()
     pendingTasks.forEach { $0.cancel() }
   }

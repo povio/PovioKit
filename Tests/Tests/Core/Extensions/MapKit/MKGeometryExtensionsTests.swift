@@ -8,6 +8,9 @@ import XCTest
 import PovioKitCore
 import MapKit
 
+// `MKMapView` and friends are `@MainActor`-isolated on recent SDKs, so
+// the whole suite runs on the main actor to drive them synchronously.
+@MainActor
 final class MKGeometryExtensionsTests: XCTestCase {
   func testMKCircleContainsCoordinate() {
     let center = CLLocationCoordinate2D(latitude: 46.0569, longitude: 14.5058)

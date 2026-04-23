@@ -12,6 +12,8 @@ import XCTest
 import UIKit
 import PovioKitCore
 
+// `UIView` is main-actor isolated in Swift 6.
+@MainActor
 class UIViewTests: XCTestCase {
   private let shadowPath: UIBezierPath = .init(rect: .init(x: 0, y: 0, width: 100, height: 100))
   private let shadowColor: UIColor = .red

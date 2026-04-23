@@ -17,12 +17,6 @@ public extension String {
   }
   
   /// Trims whitespace and newlines from both ends.
-  @available(*, deprecated, renamed: "trimmed")
-  var trimed: String {
-    trimmed
-  }
-  
-  /// Trims whitespace and newlines from both ends.
   var trimmed: String {
     trimmingCharacters(in: .whitespacesAndNewlines)
   }

@@ -59,11 +59,16 @@ public extension Exif {
       mutableMetadata = CGImageMetadataCreateMutable()
     }
     
-    for item in newValue {
-      CGImageMetadataSetValueMatchingImageProperty(mutableMetadata,
-                                                   kCGImagePropertyExifDictionary,
-                                                   item.key,
-                                                   item.value as CFString)
+    for (key, value) in newValue {
+      let success = CGImageMetadataSetValueMatchingImageProperty(
+        mutableMetadata,
+        kCGImagePropertyExifDictionary,
+        key,
+        value as CFString
+      )
+      guard success else {
+        throw ExifError.setMetadataValue(key: key as String)
+      }
     }
     
     let options: [String : Any] = [kCGImageDestinationMetadata as String : mutableMetadata,

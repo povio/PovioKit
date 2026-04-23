@@ -10,182 +10,299 @@ import XCTest
 import PovioKitCore
 import PovioKitUtilities
 
-class MoneyTests: XCTestCase {
-  // MARK: - Testing Getters
+final class MoneyTests: XCTestCase {
+  // MARK: - Getters
+
   func testGetAmount() {
     let initialAmount: Money.Cents = 100
     let money = Money(amount: initialAmount, currency: .usd)
-    XCTAssertEqual(money.amount, initialAmount, "Money amount should be equal to initial value!")
+    XCTAssertEqual(money.amount, initialAmount)
   }
-  
+
   func testGetCurrency() {
     let money = Money(amount: 100, currency: .usd)
-    XCTAssertEqual(money.currency, .usd, "Money currency should be equal to initial value!")
+    XCTAssertEqual(money.currency, .usd)
   }
-  
-  func testSameCurrency() {
-    let money = Money(amount: 100, currency: .usd)
-    let dinero = Money(amount: 200, currency: .usd)
-    XCTAssertEqual(money.currency, dinero.currency, "Two Money objects should have the same currencies!")
-  }
-  
-  func testDifferentCurrency() {
-    let money = Money(amount: 100, currency: .usd)
-    let dinero = Money(amount: 200, currency: .eur)
-    XCTAssertNotEqual(money.currency, dinero.currency, "Two Money objects should have different currencies!")
-  }
-  
+
   func testGetLocale() {
     let dinero = Money(amount: 100, currency: .eur, localeIdentifier: "es", precision: 2)
-    XCTAssertEqual(dinero.locale.identifier, "es", "Money object should be with Spanish locale!")
+    XCTAssertEqual(dinero.locale.identifier, "es")
   }
-  
+
   func testGetPrecision() {
     let money = Money(amount: 100, currency: .usd, precision: 3) // 0.1 $
-    XCTAssertEqual(money.unitValue, 0.1, "Money with 100 cents and precision 3 should have unit value of 0.1!")
+    XCTAssertEqual(money.unitValue, 0.1)
   }
-  
+
   func testGetFormatted() {
     var money = Money(amount: 123457, currency: .usd, localeIdentifier: "en_US")
-    let formattedUS = money.formatted
-    XCTAssertEqual(formattedUS, "$1,234.57", "Money should be formatted correctly!")
+    XCTAssertEqual(money.formatted, "$1,234.57")
     money.localeIdentifier = "es"
-    let formattedES = money.formatted
-    XCTAssertEqual(formattedES, "1234,57 US$", "Money should be formatted correctly!")
-  }
-  
-  func test_currencyCode() {
-    Currency.allCases.forEach {
-      let money = Money(amount: 100, currency: $0)
-      XCTAssertEqual(money.currency.code, $0.code)
-    }
-  }
-  
-  func test_currencySymbol() {
-    Currency.allCases.forEach {
-      let money = Money(amount: 100, currency: $0)
-      XCTAssertEqual(money.currency.symbol, $0.symbol)
-    }
-  }
-  
-  // MARK: - Testing Manipulations
-  func testAdd() {
-    let money = Money(amount: 100, currency: .usd) // 1 $
-    let other = Money(amount: 183456, currency: .usd, precision: 4) // 18.3456 $
-    let cents = (money + other).unitValue // This should be 193456 cents, or unit value of 19.3456 $
-    XCTAssertEqual(cents, 19.3456, "Adding Money with different precision should be correct!")
+    XCTAssertEqual(money.formatted, "1234,57\u{00A0}US$")
   }
 
-  func testSubtract() {
-    let money = Money(amount: 2000, currency: .usd) // 20 $
-    let other = Money(amount: 183456, currency: .usd, precision: 4) // 18.3456 $
-    let unitValue = (money - other).unitValue // This should be 16544 cents, or unit value of 1.6544 $
-    XCTAssertEqual(unitValue, 1.6544, "Subtract Money with different precision should be correct!")
-  }
-  
-  func testMultiplyByNumber() {
-    let money = Money(amount: 200, currency: .usd) // 2 $
-    let moneyTimesFour = money * 4
-    let unitValue = moneyTimesFour.unitValue // This should be 800 cents, or unit value of 8 $
-    XCTAssertEqual(unitValue, 8, "Multiply Money by number should be correct!")
+  func testCurrencyCode() {
+    Currency.allCases.forEach { currency in
+      let money = Money(amount: 100, currency: currency)
+      XCTAssertEqual(money.currency.code, currency.code)
+    }
   }
 
-  func testMultiply() {
-    let money = Money(amount: 200, currency: .usd) // 2 $
-    let other = Money(amount: 183456, currency: .usd, precision: 4) // 18.3456 $
-    let unitValue = (money * other).unitValue // This should be 366912 cents, or unit value of 36.6912 $
-    XCTAssertEqual(unitValue, 36.6912, "Multiply two Money objects should be correct!")
+  func testCurrencySymbol() {
+    Currency.allCases.forEach { currency in
+      let money = Money(amount: 100, currency: currency)
+      XCTAssertEqual(money.currency.symbol, currency.symbol)
+    }
   }
-  
-  func testTax() {
-    // https://v2.dinerojs.com/docs/core-concepts/scale
-    let m1 = Money(amount: 1995, currency: .usd)
-    let m2 = Money(amount: 55, currency: .usd, precision: 3)
-    let total = m1 * m2 + m1
-    XCTAssertEqual(total.unitValue, 21.04725)
+
+  // MARK: - Arithmetic
+
+  func testAddSameCurrencyDifferentPrecision() throws {
+    let money = Money(amount: 100, currency: .usd)
+    let other = Money(amount: 183456, currency: .usd, precision: 4)
+    let sum = try money + other
+    XCTAssertEqual(sum.unitValue, 19.3456, accuracy: 1e-6)
   }
-  
+
+  func testSubtractSameCurrencyDifferentPrecision() throws {
+    let money = Money(amount: 2000, currency: .usd)
+    let other = Money(amount: 183456, currency: .usd, precision: 4)
+    let diff = try money - other
+    XCTAssertEqual(diff.unitValue, 1.6544, accuracy: 1e-6)
+  }
+
+  func testAddDifferentCurrencyThrows() {
+    let usd = Money(amount: 100, currency: .usd)
+    let eur = Money(amount: 100, currency: .eur)
+
+    XCTAssertThrowsError(try usd + eur) { error in
+      guard case Money.ArithmeticError.currencyMismatch(let lhs, let rhs) = error else {
+        XCTFail("Expected currencyMismatch, got \(error)")
+        return
+      }
+      XCTAssertEqual(lhs, .usd)
+      XCTAssertEqual(rhs, .eur)
+    }
+  }
+
+  func testSubtractDifferentCurrencyThrows() {
+    let usd = Money(amount: 100, currency: .usd)
+    let eur = Money(amount: 100, currency: .eur)
+    XCTAssertThrowsError(try usd - eur)
+  }
+
+  func testAddCentsScalar() {
+    let money = Money(amount: 200, currency: .usd)
+    XCTAssertEqual((money + 50).amount, 250)
+    XCTAssertEqual((50 + money).amount, 250)
+  }
+
+  func testSubtractCentsScalar() {
+    let money = Money(amount: 200, currency: .usd)
+    XCTAssertEqual((money - 50).amount, 150)
+  }
+
+  func testMultiplyByInt() {
+    let money = Money(amount: 200, currency: .usd)
+    let quadruple = money * 4
+    XCTAssertEqual(quadruple.unitValue, 8)
+    XCTAssertEqual((4 * money).unitValue, 8)
+  }
+
+  // MARK: - Precision
+
   func testTrimPrecision() {
     XCTAssertEqual(Money(amount: 20000, precision: 4).trimedPrecision().precision, 0)
     XCTAssertEqual(Money(amount: 20000, precision: 4).trimedPrecision().amount, 2)
     XCTAssertEqual(Money(amount: 20000, precision: 4).trimedPrecision(), Money(amount: 2000, precision: 3))
-    XCTAssertEqual(Money(amount: 20000, precision: 4).trimedPrecision(), Money(amount: 200, precision: 2))
-    XCTAssertEqual(Money(amount: 20000, precision: 4).trimedPrecision(), Money(amount: 20, precision: 1))
     XCTAssertEqual(Money(amount: 20000, precision: 4).trimedPrecision(), Money(amount: 2, precision: 0))
   }
-  
-  func testTrimPrecisionKeepsZeroAmountUnchanged() {
+
+  func testTrimPrecisionResetsZeroAmount() {
     let initial = Money(amount: 0, currency: .usd, precision: 4)
     let trimmed = initial.trimedPrecision()
-    
+
     XCTAssertEqual(trimmed.amount, 0)
-    XCTAssertEqual(trimmed.precision, 4)
+    XCTAssertEqual(trimmed.precision, 0)
     XCTAssertEqual(trimmed.currency, .usd)
   }
-  
-  // MARK: - Testing Comparison
-  func testIsPositive() {
-    let money = Money(amount: 2000, currency: .usd)  // 20 $
-    XCTAssertTrue(money.isPositive, "Money should be positive!")
-    let debt = money * -1
-    XCTAssertTrue(debt.isNegative, "Debt money should be negative!")
+
+  // MARK: - Predicates
+
+  func testIsPositiveExcludesZero() {
+    XCTAssertFalse(Money(amount: 0, currency: .usd).isPositive)
+    XCTAssertTrue(Money(amount: 1, currency: .usd).isPositive)
   }
-  
+
+  func testIsNegative() {
+    XCTAssertTrue((Money(amount: 2000, currency: .usd) * -1).isNegative)
+  }
+
   func testIsZero() {
-    let money = Money(amount: 0, currency: .usd)
-    XCTAssertTrue(money.isZero, "Money should be zero!")
+    XCTAssertTrue(Money(amount: 0, currency: .usd).isZero)
   }
-  
-  func testIsEqual() {
-    let money = Money(amount: 200, currency: .usd)  // 2 $
-    let other = Money(amount: 2000, currency: .usd, precision: 3)  // 2 $
-    XCTAssertTrue(money == other, "Two Money objects should be the same!")
-    XCTAssertGreaterThanOrEqual(money, other, "One Money objects should be greater than or equal the other!")
-    XCTAssertLessThanOrEqual(money, other, "One Money objects should be less than or equal the other!")
-  }
-  
-  func testIsEqualDifferentCurrency() {
-    let money = Money(amount: 200, currency: .usd)  // 2 $
-    let other = Money(amount: 2000, currency: .eur, precision: 3)  // 2 €
-    XCTAssertNotEqual(money, other, "Two Money objects with different currency should NOT be the same!")
-  }
-  
-  func testIsGreater() {
-    let money = Money(amount: 200, currency: .usd)  // 2 $
-    let other = Money(amount: 1990, currency: .usd, precision: 3)  // 1.99 $
-    XCTAssertGreaterThan(money, other, "One Money objects should be greater than the other!")
-    XCTAssertGreaterThanOrEqual(money, other, "One Money objects should be greater than or equal the other!")
-  }
-  
-  func testIsLess() {
-    let money = Money(amount: 199, currency: .usd)  // 1.99 $
-    let other = Money(amount: 2000, currency: .usd, precision: 3)  // 2 $
-    XCTAssertLessThan(money, other, "One Money objects should be less than the other!")
-    XCTAssertLessThanOrEqual(money, other, "One Money objects should be less than or equal the other!")
-  }
-  
-  func testPerformance() {
-    let m1 = Money(amount: 1995, currency: .usd)
-    let m2 = Money(amount: 55, currency: .usd, precision: 3)
 
-    func bench<T>(repeat: Int = 1_000_000, op: (Money, Money) -> T) {
-      for _ in 0..<`repeat` {
-        let _ = op(m1, m2)
+  // MARK: - Equality
+
+  func testEqualityAlignsPrecision() {
+    let money = Money(amount: 200, currency: .usd)              // 2.00 $
+    let other = Money(amount: 2000, currency: .usd, precision: 3) // 2.000 $
+    XCTAssertEqual(money, other)
+  }
+
+  func testNotEqualDifferentCurrency() {
+    let money = Money(amount: 200, currency: .usd)
+    let other = Money(amount: 2000, currency: .eur, precision: 3)
+    XCTAssertNotEqual(money, other)
+  }
+
+  // MARK: - Hashable contract
+
+  /// `Hashable` demands: if `a == b` then `a.hashValue == b.hashValue`.
+  /// Previously, `==` aligned precision but the synthesised hash did not,
+  /// which broke this invariant. Now both are defined via the trimmed
+  /// canonical form, so the contract holds.
+  func testEqualValuesProduceSameHash() {
+    let money = Money(amount: 200, currency: .usd)                // 2.00 $
+    let other = Money(amount: 2000, currency: .usd, precision: 3)  // 2.000 $
+    XCTAssertEqual(money, other)
+    XCTAssertEqual(money.hashValue, other.hashValue)
+  }
+
+  func testEqualValuesUsableInSets() {
+    let money = Money(amount: 200, currency: .usd)
+    let other = Money(amount: 2000, currency: .usd, precision: 3)
+    let set: Set<Money> = [money, other]
+    XCTAssertEqual(set.count, 1)
+  }
+
+  func testDifferentCurrenciesProduceDifferentHashes() {
+    let usd = Money(amount: 200, currency: .usd)
+    let eur = Money(amount: 200, currency: .eur)
+    XCTAssertNotEqual(usd.hashValue, eur.hashValue)
+  }
+
+  // MARK: - Ordering
+
+  func testIsGreaterThanSameCurrency() throws {
+    let money = Money(amount: 200, currency: .usd)
+    let other = Money(amount: 1990, currency: .usd, precision: 3)
+    XCTAssertTrue(try money.isGreaterThan(other))
+    XCTAssertTrue(try money.isGreaterThanOrEqual(to: other))
+  }
+
+  func testIsLessThanSameCurrency() throws {
+    let money = Money(amount: 199, currency: .usd)
+    let other = Money(amount: 2000, currency: .usd, precision: 3)
+    XCTAssertTrue(try money.isLessThan(other))
+    XCTAssertTrue(try money.isLessThanOrEqual(to: other))
+  }
+
+  func testOrderingThrowsOnMixedCurrencies() {
+    let usd = Money(amount: 100, currency: .usd)
+    let eur = Money(amount: 100, currency: .eur)
+    XCTAssertThrowsError(try usd.isLessThan(eur))
+    XCTAssertThrowsError(try usd.isGreaterThan(eur))
+  }
+
+  func testOrderingErrorCarriesMismatchedCurrencies() {
+    let usd = Money(amount: 100, currency: .usd)
+    let eur = Money(amount: 100, currency: .eur)
+
+    XCTAssertThrowsError(try usd.isLessThan(eur)) { error in
+      guard case Money.OrderingError.currencyMismatch(let lhs, let rhs) = error else {
+        XCTFail("Expected OrderingError.currencyMismatch, got \(error)")
+        return
       }
+      XCTAssertEqual(lhs, .usd)
+      XCTAssertEqual(rhs, .eur)
     }
-
-    let timeAdd = benchmark { bench(op: +) }
-    print("Done add")
-    let timeSub = benchmark { bench(op: -) }
-    print("Done sub")
-    let timeMul = benchmark { bench(op: *) }
-    print("Done mul")
-    print(timeAdd, timeSub, timeMul)
   }
-}
 
-func benchmark(task: () -> Void) -> Double {
-  let start = CFAbsoluteTimeGetCurrent()
-  task()
-  return CFAbsoluteTimeGetCurrent() - start
+  func testOrderingBoundaryWhenEqual() throws {
+    let lhs = Money(amount: 100, currency: .usd)
+    let rhs = Money(amount: 1000, currency: .usd, precision: 3) // equal after alignment
+
+    XCTAssertFalse(try lhs.isLessThan(rhs))
+    XCTAssertFalse(try lhs.isGreaterThan(rhs))
+    XCTAssertTrue(try lhs.isLessThanOrEqual(to: rhs))
+    XCTAssertTrue(try lhs.isGreaterThanOrEqual(to: rhs))
+  }
+
+  // MARK: - Arithmetic symmetry
+
+  /// Guards against a one-way bug in `alignToSamePrecision`.
+  /// The existing tests cover `lhs.precision < rhs.precision`; this covers
+  /// the reverse direction.
+  func testAddHigherPrecisionOnLeft() throws {
+    let higher = Money(amount: 183456, currency: .usd, precision: 4)
+    let lower = Money(amount: 100, currency: .usd)
+    let sum = try higher + lower
+    XCTAssertEqual(sum.unitValue, 19.3456, accuracy: 1e-6)
+  }
+
+  func testSubtractHigherPrecisionOnLeft() throws {
+    let higher = Money(amount: 183456, currency: .usd, precision: 4)
+    let lower = Money(amount: 2000, currency: .usd)
+    let diff = try higher - lower
+    XCTAssertEqual(diff.unitValue, -1.6544, accuracy: 1e-6)
+  }
+
+  // MARK: - Hash equality beyond equality tests
+
+  func testHashIgnoresLocaleIdentifier() {
+    let us = Money(amount: 200, currency: .usd, localeIdentifier: "en_US")
+    let es = Money(amount: 200, currency: .usd, localeIdentifier: "es")
+    XCTAssertEqual(us, es)
+    XCTAssertEqual(us.hashValue, es.hashValue)
+  }
+
+  func testZeroHashesEqualAcrossPrecisions() {
+    let zeroP0 = Money(amount: 0, currency: .usd, precision: 0)
+    let zeroP2 = Money(amount: 0, currency: .usd, precision: 2)
+    let zeroP5 = Money(amount: 0, currency: .usd, precision: 5)
+
+    XCTAssertEqual(zeroP0, zeroP2)
+    XCTAssertEqual(zeroP0, zeroP5)
+    XCTAssertEqual(zeroP0.hashValue, zeroP2.hashValue)
+    XCTAssertEqual(zeroP0.hashValue, zeroP5.hashValue)
+
+    let set: Set<Money> = [zeroP0, zeroP2, zeroP5]
+    XCTAssertEqual(set.count, 1)
+  }
+
+  // MARK: - Codable
+
+  /// Guards the on-disk representation. The coding keys are part of the
+  /// wire format for any persisted Money (UserDefaults, backend payloads,
+  /// documents) — a silent rename corrupts every existing value.
+  func testCodableRoundTrip() throws {
+    let original = Money(
+      amount: 123_457,
+      currency: .eur,
+      localeIdentifier: "de_DE",
+      precision: 3
+    )
+
+    let data = try JSONEncoder().encode(original)
+    let decoded = try JSONDecoder().decode(Money.self, from: data)
+
+    XCTAssertEqual(decoded.amount, original.amount)
+    XCTAssertEqual(decoded.currency, original.currency)
+    XCTAssertEqual(decoded.localeIdentifier, original.localeIdentifier)
+    XCTAssertEqual(decoded.precision, original.precision)
+  }
+
+  func testCodableUsesStableKeys() throws {
+    let money = Money(amount: 100, currency: .usd, localeIdentifier: "en_US", precision: 2)
+    let data = try JSONEncoder().encode(money)
+    let json = try XCTUnwrap(
+      try JSONSerialization.jsonObject(with: data) as? [String: Any]
+    )
+
+    XCTAssertNotNil(json["cents"], "Coding key 'cents' is part of the persisted format; do not rename.")
+    XCTAssertNotNil(json["currency"])
+    XCTAssertNotNil(json["localeIdentifier"])
+    XCTAssertNotNil(json["precision"])
+  }
 }

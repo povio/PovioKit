@@ -55,6 +55,22 @@ final class DelegatedTests: XCTestCase {
     XCTAssertEqual(testObject.lastInput, "test", "Should receive correct input")
   }
   
+  func testDelegatedReturnsNilWhenNoDelegateAttached() {
+    let delegated = Delegated<String, String>()
+    
+    let result = delegated("test")
+    
+    XCTAssertNil(result, "Should return nil when no delegate has been attached")
+  }
+  
+  func testVoidInputDelegatedReturnsNilWhenNoDelegateAttached() {
+    let delegated = Delegated<Void, String>()
+    
+    let result = delegated()
+    
+    XCTAssertNil(result, "Should return nil when no delegate has been attached")
+  }
+  
   func testDelegatedWithIntegerTypes() {
     var delegated = Delegated<Int, Int>()
     let testObject = TestObject()
@@ -240,7 +256,7 @@ final class DelegatedTests: XCTestCase {
     let input = ComplexInput(name: "test", value: 42)
     let output = delegated(input)
     
-    XCTAssertEqual(output.result, "test: 42", "Should handle complex types")
+    XCTAssertEqual(output?.result, "test: 42", "Should handle complex types")
     XCTAssertEqual(testObject.callCount, 1, "Should call delegate with complex types")
   }
 }

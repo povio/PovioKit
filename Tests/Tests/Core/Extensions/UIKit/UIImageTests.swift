@@ -11,6 +11,9 @@ import XCTest
 import UIKit
 import PovioKitCore
 
+// `UIImage` async extensions spawn `Task`s that capture `self`, and
+// `waitForExpectations(timeout:)` is main-actor isolated in Swift 6.
+@MainActor
 class UIImageTests: XCTestCase {
   private let image: UIImage? = UIImage(named: "PovioKit", in: .module, with: nil)
   

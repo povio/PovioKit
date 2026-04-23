@@ -58,4 +58,23 @@ class AppVersionValidatorTests: XCTestCase {
       XCTAssertEqual(error as? AppVersionValidatorError, .invalidVersionComponent("v"))
     }
   }
+
+  /// "2" is semantically equal to "2.0.0" — trailing zeros on the required
+  /// side must not force a false negative.
+  func testShorterAppIsEqualWhenRequiredTrailingSegmentsAreZero() throws {
+    let validator = AppVersionValidator()
+    XCTAssertTrue(try validator.isAppVersion("2", equalOrHigherThan: "2.0"))
+    XCTAssertTrue(try validator.isAppVersion("2", equalOrHigherThan: "2.0.0"))
+    XCTAssertTrue(try validator.isAppVersion("2.0", equalOrHigherThan: "2.0.0.0"))
+    XCTAssertTrue(try validator.isAppVersion("1.8", equalOrHigherThan: "1.8.0"))
+  }
+
+  /// Conversely, trailing zeros on the *app* side must keep it at or above
+  /// the required version.
+  func testLongerAppWithTrailingZerosIsEqualOrHigher() throws {
+    let validator = AppVersionValidator()
+    XCTAssertTrue(try validator.isAppVersion("2.0", equalOrHigherThan: "2"))
+    XCTAssertTrue(try validator.isAppVersion("2.0.0", equalOrHigherThan: "2"))
+    XCTAssertTrue(try validator.isAppVersion("2.0.0.0", equalOrHigherThan: "2.0.0"))
+  }
 }

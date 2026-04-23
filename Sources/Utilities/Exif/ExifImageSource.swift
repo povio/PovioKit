@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum ExifImageSource {
+public enum ExifImageSource: Sendable {
   case url(URL)
   /// Keep in mind that some image formats are not lossless and could lose quality.
   /// When dealing with PNGs, you could load it with `UIImage(named:` and convert it to Data with `pngData()` method. This will persist in the quality since PNG is a lossless format.

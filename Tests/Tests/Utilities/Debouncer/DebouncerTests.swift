@@ -9,48 +9,97 @@ import XCTest
 @testable import PovioKitUtilities
 
 final class DebouncerTests: XCTestCase {
+  // MARK: - Trailing
+
   func testTrailingBehaviorExecutesOnlyLastCall() {
-    let debouncer = Debouncer(queue: .main, delay: .milliseconds(20), behavior: .trailing)
+    let debouncer = Debouncer(delay: .milliseconds(20), behavior: .trailing)
     let expectation = expectation(description: "Trailing call executed")
-    var output = [String]()
-    
+    let output = LockedArray<String>()
+
     debouncer.execute { output.append("A") }
     debouncer.execute {
       output.append("B")
       expectation.fulfill()
     }
-    
-    waitForExpectations(timeout: 1)
-    XCTAssertEqual(output, ["B"])
+
+    wait(for: [expectation], timeout: 1)
+    XCTAssertEqual(output.snapshot, ["B"])
   }
-  
-  func testLeadingBehaviorExecutesFirstCallOnlyWithinWindow() {
-    let debouncer = Debouncer(queue: .main, delay: .milliseconds(20), behavior: .leading)
-    let leadingExpectation = expectation(description: "Leading call executed")
-    var output = [String]()
-    
+
+  func testTrailingBehaviorExecutesTwiceWhenCallsAreSpacedApart() {
+    let debouncer = Debouncer(delay: .milliseconds(20), behavior: .trailing)
+    let first = expectation(description: "First trailing call executed")
+    let second = expectation(description: "Second trailing call executed")
+    let output = LockedArray<String>()
+
     debouncer.execute {
       output.append("A")
-      leadingExpectation.fulfill()
+      first.fulfill()
+    }
+
+    wait(for: [first], timeout: 1)
+
+    debouncer.execute {
+      output.append("B")
+      second.fulfill()
+    }
+
+    wait(for: [second], timeout: 1)
+    XCTAssertEqual(output.snapshot, ["A", "B"])
+  }
+
+  func testTrailingBehaviorSupportsRescheduleFromCallback() {
+    // Regression test: calling `execute` from inside a trailing callback
+    // used to deadlock when the debouncer held its lock across the work
+    // closure.
+    let debouncer = Debouncer(delay: .milliseconds(10), behavior: .trailing)
+    let done = expectation(description: "Second call completed")
+    let output = LockedArray<String>()
+
+    debouncer.execute {
+      output.append("A")
+      debouncer.execute {
+        output.append("B")
+        done.fulfill()
+      }
+    }
+
+    wait(for: [done], timeout: 1)
+    XCTAssertEqual(output.snapshot, ["A", "B"])
+  }
+
+  // MARK: - Leading
+
+  func testLeadingBehaviorExecutesFirstCallOnlyWithinWindow() {
+    let debouncer = Debouncer(delay: .milliseconds(20), behavior: .leading)
+    let leading = expectation(description: "Leading call executed")
+    let output = LockedArray<String>()
+
+    debouncer.execute {
+      output.append("A")
+      leading.fulfill()
     }
     debouncer.execute { output.append("B") }
-    
-    waitForExpectations(timeout: 1)
-    let settleExpectation = expectation(description: "Wait for debounce window")
-    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(60)) {
-      settleExpectation.fulfill()
+
+    wait(for: [leading], timeout: 1)
+
+    let settle = expectation(description: "Wait for debounce window")
+    DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(80)) {
+      settle.fulfill()
     }
-    waitForExpectations(timeout: 1)
-    
-    XCTAssertEqual(output, ["A"])
+    wait(for: [settle], timeout: 1)
+
+    XCTAssertEqual(output.snapshot, ["A"])
   }
-  
+
+  // MARK: - Leading and trailing
+
   func testLeadingAndTrailingBehaviorExecutesBothWhenBurstContinues() {
-    let debouncer = Debouncer(queue: .main, delay: .milliseconds(20), behavior: .leadingAndTrailing)
+    let debouncer = Debouncer(delay: .milliseconds(20), behavior: .leadingAndTrailing)
     let expectation = expectation(description: "Leading and trailing executed")
     expectation.expectedFulfillmentCount = 2
-    var output = [String]()
-    
+    let output = LockedArray<String>()
+
     debouncer.execute {
       output.append("A")
       expectation.fulfill()
@@ -59,38 +108,72 @@ final class DebouncerTests: XCTestCase {
       output.append("B")
       expectation.fulfill()
     }
-    
-    waitForExpectations(timeout: 1)
-    XCTAssertEqual(output, ["A", "B"])
+
+    wait(for: [expectation], timeout: 1)
+    XCTAssertEqual(output.snapshot, ["A", "B"])
   }
-  
+
+  // MARK: - Cancel
+
   func testCancelPendingJobPreventsTrailingExecution() {
-    let debouncer = Debouncer(queue: .main, delay: .milliseconds(20), behavior: .trailing)
+    let debouncer = Debouncer(delay: .milliseconds(20), behavior: .trailing)
     let expectation = expectation(description: "No execution after cancel")
-    var output = [String]()
-    
+    let output = LockedArray<String>()
+
     debouncer.execute { output.append("A") }
-    debouncer.cancelPendingJob()
-    
+    debouncer.cancel()
+
     DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(80)) {
       expectation.fulfill()
     }
-    
-    waitForExpectations(timeout: 1)
-    XCTAssertTrue(output.isEmpty)
+
+    wait(for: [expectation], timeout: 1)
+    XCTAssertTrue(output.snapshot.isEmpty)
   }
-  
+
+  // MARK: - executeWithResult
+
   func testExecuteWithResultReturnsValue() {
-    let debouncer = Debouncer(queue: .main, delay: .milliseconds(20), behavior: .trailing)
+    let debouncer = Debouncer(delay: .milliseconds(20), behavior: .trailing)
     let expectation = expectation(description: "Result callback executed")
-    var value: Int?
-    
+    let box = LockedBox<Int>()
+
     debouncer.executeWithResult(work: { 21 * 2 }) { result in
-      value = result
+      box.set(result)
       expectation.fulfill()
     }
-    
-    waitForExpectations(timeout: 1)
-    XCTAssertEqual(value, 42)
+
+    wait(for: [expectation], timeout: 1)
+    XCTAssertEqual(box.value, 42)
+  }
+}
+
+// MARK: - Test helpers
+
+/// Minimal `Sendable` container used to observe effects from debounced
+/// closures without tripping strict-concurrency diagnostics.
+private final class LockedArray<Element>: @unchecked Sendable {
+  private let lock = NSLock()
+  private var storage: [Element] = []
+
+  func append(_ element: Element) {
+    lock.withLock { storage.append(element) }
+  }
+
+  var snapshot: [Element] {
+    lock.withLock { storage }
+  }
+}
+
+private final class LockedBox<Value>: @unchecked Sendable {
+  private let lock = NSLock()
+  private var storage: Value?
+
+  func set(_ value: Value) {
+    lock.withLock { storage = value }
+  }
+
+  var value: Value? {
+    lock.withLock { storage }
   }
 }

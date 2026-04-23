@@ -9,85 +9,89 @@
 import Foundation
 
 public extension URL {
-  /// A failable initializer for creating a `URL` object from an optional string.
+  /// A failable initializer for creating a `URL` from an optional string.
   ///
-  /// This initializer ensures that if the string is `nil`, the initialization fails
-  /// and returns `nil`. It wraps the standard `URL(string:)` initializer, which only
-  /// succeeds if the string can be parsed as a valid URL.
-  ///
-  /// - Parameter string: An optional string representing a URL.
-  /// - Returns: A `URL` object if the string is non-`nil`, or `nil` if the string is `nil`.
+  /// Returns `nil` if `string` is `nil` or cannot be parsed as a URL.
   init?(string: String?) {
     guard let string = string else { return nil }
     self.init(string: string)
   }
-  
-  /// Appends a query parameter to the URL.
-  ///
-  /// ## Example
-  /// ```
-  /// let someURL: URL = "https://povio.com"
-  /// let newURL = someURL
-  ///   .appending("accept", value: "developers")
-  ///   .appending("tech", value: "iOS")
-  ///
-  /// print(newURL) // https://povio.com?accept=developers&tech=iOS
-  /// ```
-  func appending(_ name: String, value: String?) -> URL {
-    guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else { return absoluteURL }
-    var queryItems = components.queryItems ?? []
-    let newQueryItem = URLQueryItem(name: name, value: value)
-    queryItems.append(newQueryItem)
-    components.queryItems = queryItems
-    components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
-    return components.url ?? absoluteURL
-  }
-  
-  /// Retrieves the query parameters from the URL as a dictionary.
-  ///
-  /// - Returns: An optional dictionary where the keys are `AnyHashable` representing the query parameter names,
-  ///            and the values are `Any` representing the corresponding query parameter values.
-  ///            Returns nil if the URL is invalid or has no query parameters.
-  var queryParameters: [AnyHashable: Any]? {
-    guard let components = URLComponents(url: self, resolvingAgainstBaseURL: true),
-          let queryItems = components.queryItems else { return nil }
-    
-    var params = [AnyHashable: Any](minimumCapacity: queryItems.count)
-    for queryItem in queryItems {
-      if let value = queryItem.value {
-        params[queryItem.name] = value
-      }
-    }
-    
-    return params.isEmpty ? nil : params
-  }
-}
 
-extension URL: @retroactive ExpressibleByExtendedGraphemeClusterLiteral {}
-extension URL: @retroactive ExpressibleByUnicodeScalarLiteral {}
-extension Foundation.URL: Swift.ExpressibleByStringLiteral {
-  /// Creates a `URL` object from a string literal.
+  /// Creates a URL from a string literal, trapping on invalid input.
   ///
-  /// This initializer enables `URL` values to be initialized directly from string literals.
-  /// In debug builds, invalid literals trigger `assertionFailure` to surface programmer errors.
-  /// In other builds, invalid literals fall back to `about:blank`.
-  ///
-  /// - Parameter value: A string literal representing a URL.
-  /// - Warning: Invalid literals indicate a programmer error and should be fixed at the call site.
+  /// This is intended as an explicit, opt-in replacement for the retroactive
+  /// `ExpressibleByStringLiteral` conformance the package used to ship, which
+  /// turned *every* string literal context involving `URL` into a surprise
+  /// site of failure. Use ``URL/require(_:file:line:)`` at the call site
+  /// where you know the input is static and must be valid.
   ///
   /// ## Example
   /// ```swift
-  /// let myURL: URL = "https://www.povio.com"
-  /// print(myURL) // Prints: https://www.povio.com
+  /// let home = URL.require("https://povio.com")
   /// ```
-  public init(stringLiteral value: String) {
-    if let url = URL(string: value) {
-      self = url
-      return
+  static func require(
+    _ string: String,
+    file: StaticString = #fileID,
+    line: UInt = #line
+  ) -> URL {
+    guard let url = URL(string: string) else {
+      preconditionFailure("Invalid URL literal: \(string)", file: file, line: line)
     }
-    #if DEBUG
-    assertionFailure("Invalid URL string literal: \(value)")
-    #endif
-    self = URL(string: "about:blank")!
+    return url
+  }
+
+  /// Appends a query parameter to the URL.
+  ///
+  /// The implementation relies on `URLComponents` for all percent-encoding
+  /// except for the literal `+`, which `URLComponents` intentionally leaves
+  /// unencoded even though many servers treat it as a space under
+  /// `application/x-www-form-urlencoded` semantics. The `+` fixup operates
+  /// on `percentEncodedQuery`, so it is idempotent and does not double-encode
+  /// other characters — values can be composed or round-tripped through
+  /// `appending` any number of times without corruption.
+  ///
+  /// ## Example
+  /// ```swift
+  /// let someURL = URL.require("https://povio.com")
+  /// let newURL = someURL
+  ///   .appending("accept", value: "developers")
+  ///   .appending("tech", value: "iOS")
+  /// // https://povio.com?accept=developers&tech=iOS
+  /// ```
+  func appending(_ name: String, value: String?) -> URL {
+    guard var components = URLComponents(url: self, resolvingAgainstBaseURL: true) else {
+      // `URLComponents(url:resolvingAgainstBaseURL:)` only fails for malformed
+      // URLs; in that case we can't reasonably attach a query parameter, so
+      // return the original URL unchanged.
+      return self
+    }
+    var queryItems = components.queryItems ?? []
+    queryItems.append(URLQueryItem(name: name, value: value))
+    components.queryItems = queryItems
+    // Explicit `+` escape — see doc comment above. Not doing this means the
+    // value round-trips fine on Apple platforms but gets silently corrupted
+    // on form-encoded server parsers.
+    if let encodedQuery = components.percentEncodedQuery {
+      components.percentEncodedQuery = encodedQuery.replacingOccurrences(of: "+", with: "%2B")
+    }
+    return components.url ?? self
+  }
+
+  /// Retrieves the query parameters from the URL as a typed dictionary.
+  ///
+  /// - Returns: A `[String: String]` dictionary of query items that have a
+  ///   non-`nil` value, or `nil` if the URL has no parameters.
+  var queryParameters: [String: String]? {
+    guard let components = URLComponents(url: self, resolvingAgainstBaseURL: true),
+          let queryItems = components.queryItems else { return nil }
+
+    var params = [String: String](minimumCapacity: queryItems.count)
+    for item in queryItems {
+      if let value = item.value {
+        params[item.name] = value
+      }
+    }
+
+    return params.isEmpty ? nil : params
   }
 }

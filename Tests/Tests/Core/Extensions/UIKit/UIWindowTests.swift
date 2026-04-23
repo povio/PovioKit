@@ -11,6 +11,8 @@ import XCTest
 import UIKit
 import PovioKitCore
 
+// `UIWindow` is main-actor isolated in Swift 6.
+@MainActor
 class UIWindowTests: XCTestCase {
   func test_safeAreaInsets() {
     let window = UIWindow()

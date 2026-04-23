@@ -15,39 +15,40 @@ internal enum PurchasedProductIDsResolver {
     let availableSet = Set(availableProductIDs)
     var seen = Set<String>()
     var resolved = [String]()
-    
+
     for id in entitlementProductIDs where availableSet.contains(id) {
       if seen.insert(id).inserted {
         resolved.append(id)
       }
     }
-    
+
     return resolved
   }
 }
 
-public final class InAppPurchaseService: NSObject {
+public actor InAppPurchaseService {
   public typealias IAPProduct = String
   public typealias IAPReceipt = String
-  
+
   private let productIdentifiers: [IAPProduct]
-  private var updateListenerTask: Task<Void, Error>? = nil
+  private var updateListenerTask: Task<Void, Error>?
   private var availableProducts: [Product] = []
   private var purchasedProducts: [Product] = []
-  
-  /// Initialize new InAppPurchase with all available products
+
+  /// Initialize new InAppPurchase with all available products.
+  ///
+  /// The service begins listening for transaction updates and loads products
+  /// in the background as soon as it is constructed. Call ``bootstrap()``
+  /// explicitly to `await` that initial load before taking a dependency on
+  /// ``availableProducts``.
   /// - Parameter identifiers: Array of ``IAPProduct`` (eg. ["com.test.plan1", "com.test.plan2"])
   public init(identifiers: [IAPProduct]) {
     self.productIdentifiers = identifiers
-    super.init()
-    updateListenerTask = listenForTransactions()
-    
-    Task {
-      await requestProducts()
-      await updatePurchasedProducts()
+    Task { [weak self] in
+      await self?.bootstrap()
     }
   }
-  
+
   deinit {
     updateListenerTask?.cancel()
   }
@@ -55,7 +56,17 @@ public final class InAppPurchaseService: NSObject {
 
 // MARK: - Public
 extension InAppPurchaseService {
-  /// Purchase product with options
+  /// Awaitable initialization that finishes once products have been fetched
+  /// and existing entitlements have been resolved.
+  public func bootstrap() async {
+    if updateListenerTask == nil {
+      updateListenerTask = listenForTransactions()
+    }
+    await requestProducts()
+    await updatePurchasedProducts()
+  }
+
+  /// Purchase product with options.
   /// - Parameters:
   ///   - product: InAppPurchase product identifier (eg. "com.test.plan") to purchase
   ///   - options: Set of ``PurchaseOption``
@@ -67,7 +78,7 @@ extension InAppPurchaseService {
   /// * ``InAppPurchaseError.requestFailed(error)``
   public func purchase(product: IAPProduct, options: Set<Product.PurchaseOption> = []) async -> Result<Transaction, InAppPurchaseError> {
     guard let product = availableProducts.first(where: { $0.id == product }) else {
-      Logger.error("Purchase failed!", params: ["reason": "missing product id"])
+      Logger.warning("Purchase failed.", params: ["reason": "missing product id"])
       return .failure(InAppPurchaseError.missingProductId)
     }
     do {
@@ -79,34 +90,27 @@ extension InAppPurchaseService {
         await transaction.finish()
         return .success(transaction)
       case .userCancelled:
-        Logger.error("Purchase failed!", params: ["reason": "User cancelled"])
+        Logger.info("Purchase cancelled by user.")
         return .failure(InAppPurchaseError.paymentCancelled)
       case .pending:
-        Logger.error("Purchase pending!")
+        Logger.info("Purchase pending.")
         return .failure(InAppPurchaseError.paymentPending)
-      default:
-        Logger.error("Purchase failed!", params: ["reason": "Unknown purchase state"])
+      @unknown default:
+        Logger.error("Unknown purchase state.")
         return .failure(InAppPurchaseError.requestFailed(nil))
       }
     } catch {
-      Logger.error("Purchase failed!", params: ["error": error.localizedDescription])
+      Logger.error("Purchase failed.", params: ["error": error.localizedDescription])
       return .failure(InAppPurchaseError.requestFailed(error))
     }
   }
-  
-  /// Check if product is purchased
-  ///
+
+  /// Check if product is purchased.
   /// - Parameter product: ``IAPProduct`` to check if purchased
   /// - Returns: Result type with ``Bool`` value if product is purchased or not and ``InAppPurchaseError`` if request fails.
-  /// We will return `false` if the transaction is refunded or revoked from family sharing,
-  /// and also if the transaction is upgraded to another subscription.
-  /// - Important: ``InAppPurchaseError`` cases that this function returns:
-  /// * ``InAppPurchaseError.missingProductId``
-  /// * ``InAppPurchaseError.notPurchased``
-  /// * ``InAppPurchaseError.requestFailed(error)``
   public func isPurchased(_ product: IAPProduct) async -> Result<Bool, InAppPurchaseError> {
     guard availableProducts.first(where: { $0.id == product }) != nil else {
-      Logger.error("Check purchase failed!", params: ["reason": "missing product id"])
+      Logger.warning("Check purchase failed.", params: ["reason": "missing product id"])
       return .failure(InAppPurchaseError.missingProductId)
     }
     guard let result = await Transaction.latest(for: product) else {
@@ -119,15 +123,8 @@ extension InAppPurchaseService {
       return .failure(InAppPurchaseError.requestFailed(error))
     }
   }
-  
-  /// Force restore InAppPurchase
-  ///
-  /// In regular operations, there’s no need to call ``restorePurchases()``, StoreKit automatically keeps up-to-date transaction information and subscription status available to your app.
-  /// - Returns: Result type with .success or ``InAppPurchaseError``
-  /// - Important: ``InAppPurchaseError`` cases that this function returns:
-  /// * ``InAppPurchaseError.restoreFailed(error)``
-  /// - Attention: Call this function only in response to an explicit user action, such as tapping a button.
-  /// This call displays a system prompt that asks users to authenticate with their App Store credentials.
+
+  /// Force restore InAppPurchase.
   public func restorePurchases() async -> Result<Void, InAppPurchaseError> {
     do {
       try await AppStore.sync()
@@ -136,16 +133,12 @@ extension InAppPurchaseService {
       return .failure(InAppPurchaseError.restoreFailed(error))
     }
   }
-  
-  /// Validate AppStore receipt if available on the phone
-  /// - Returns: Result type with receipt ``String`` if available and valid or ``InAppPurchaseError``
-  /// - Important: ``InAppPurchaseError`` cases that this function returns:
-  /// * ``InAppPurchaseError.missingReceipt``
-  /// * ``InAppPurchaseError.validationFailed(error)``
-  public func validateReceipt() -> Result<IAPReceipt, InAppPurchaseError> {
+
+  /// Validate AppStore receipt if available on the phone.
+  public nonisolated func validateReceipt() -> Result<IAPReceipt, InAppPurchaseError> {
     guard let appStoreReceiptURL = Bundle.main.appStoreReceiptURL,
           FileManager.default.fileExists(atPath: appStoreReceiptURL.path) else {
-      Logger.error("Validate receipts failed!", params: ["reason": "missing receipt"])
+      Logger.warning("Validate receipts failed.", params: ["reason": "missing receipt"])
       return .failure(InAppPurchaseError.missingReceipt)
     }
     do {
@@ -161,48 +154,49 @@ extension InAppPurchaseService {
 // MARK: - Private
 private extension InAppPurchaseService {
   func listenForTransactions() -> Task<Void, Error> {
-    return Task.detached {
+    Task { [weak self] in
       for await result in Transaction.updates {
+        guard let self else { return }
         do {
           let transaction = try self.checkVerified(result)
           await self.updatePurchasedProducts()
           await transaction.finish()
         } catch {
-          Logger.error("Transaction failed verification!", params: ["error": error.localizedDescription])
+          Logger.error("Transaction failed verification.", params: ["error": error.localizedDescription])
         }
       }
     }
   }
-  
+
   func requestProducts() async {
     guard !productIdentifiers.isEmpty else {
-      Logger.error("Get available products failed!", params: ["reason": "no product identifiers"])
+      Logger.warning("Get available products skipped.", params: ["reason": "no product identifiers"])
       return
     }
     do {
       availableProducts = try await Product.products(for: productIdentifiers)
     } catch {
-      Logger.error("Get available products request failed!", params: ["error": error.localizedDescription])
+      Logger.error("Get available products request failed.", params: ["error": error.localizedDescription])
     }
   }
-  
+
   func updatePurchasedProducts() async {
-    purchasedProducts.removeAll(keepingCapacity: true)
+    var newlyPurchased: [Product] = []
     for await result in Transaction.currentEntitlements {
       do {
         let transaction = try checkVerified(result)
-        if let product = availableProducts.first(where: { $0.id == transaction.productID }) {
-          if purchasedProducts.contains(where: { $0.id == product.id }) == false {
-            purchasedProducts.append(product)
-          }
+        if let product = availableProducts.first(where: { $0.id == transaction.productID }),
+           !newlyPurchased.contains(where: { $0.id == product.id }) {
+          newlyPurchased.append(product)
         }
       } catch {
-        Logger.error("Update purchased products status failed!", params: ["error": error.localizedDescription])
+        Logger.error("Update purchased products status failed.", params: ["error": error.localizedDescription])
       }
     }
+    purchasedProducts = newlyPurchased
   }
-  
-  func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
+
+  nonisolated func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
     switch result {
     case .unverified:
       throw InAppPurchaseError.verificationFailed

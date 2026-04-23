@@ -19,6 +19,11 @@ permissions:
 jobs:
   build-docs:
     runs-on: macos-26-xlarge
+    # `swift-docc-plugin` is scoped behind this env var in `Package.swift` so that
+    # PovioKit consumers don't have to resolve it in their own package graph.
+    # It's required for `swift package generate-documentation` to be available.
+    env:
+      POVIOKIT_BUILD_DOCS: "1"
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v5

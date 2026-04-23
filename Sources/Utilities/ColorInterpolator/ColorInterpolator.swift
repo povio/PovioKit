@@ -33,9 +33,17 @@ public struct LinearColorInterpolator: ColorInterpolator {
     if percentage < 0.01 { return firstColor }
     if percentage > 0.99 { return lastColor }
     
+    // Use a strict map so each index in `components` lines up with the same
+    // index in `colorPoints`; a previous compactMap version silently shifted
+    // indices when a color had no CG components.
+    let components: [[CGFloat]] = try colorPoints.map { color in
+      guard let c = color.cgColor.components, c.count >= 3 else {
+        throw Error.colorComponentsMissing
+      }
+      return c
+    }
     let boxWidth = 1 / CGFloat(colorPoints.count - 1)
     let index = Int(ceil(percentage / boxWidth))
-    let components = colorPoints.compactMap { $0.cgColor.components }
     switch index {
     case 1..<colorPoints.count:
       return interpolate(components[index - 1],

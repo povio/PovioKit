@@ -34,17 +34,12 @@ public final class AsyncSemaphore: @unchecked Sendable {
   }
 
   public func acquire() async {
-    let shouldSuspend = lock.withLock {
-      if permits > 0 {
-        permits -= 1
-        return false
-      }
-      return true
-    }
-
-    if shouldSuspend {
-      await withCheckedContinuation { continuation in
-        lock.withLock {
+    await withCheckedContinuation { continuation in
+      lock.withLock {
+        if permits > 0 {
+          permits -= 1
+          continuation.resume()
+        } else {
           waiters.append(continuation)
         }
       }

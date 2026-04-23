@@ -10,6 +10,8 @@
 import XCTest
 import PovioKitCore
 
+// `UITableViewHeaderFooterView.identifier` is main-actor isolated in Swift 6.
+@MainActor
 class UITableViewHeaderFooterViewTests: XCTestCase {
   func test_identifier_returnsCorrectIdentifier() {
     let SUTs: [(expectedIdentifier: String, mkAnnotationView: UITableViewHeaderFooterView.Type)] = [("CustomUITableViewHeaderFooterView", CustomUITableViewHeaderFooterView.self), ("OtherUITableViewHeaderFooterView", OtherUITableViewHeaderFooterView.self)]

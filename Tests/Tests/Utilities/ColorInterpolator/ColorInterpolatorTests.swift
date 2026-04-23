@@ -126,6 +126,19 @@ final class ColorInterpolatorTests: XCTestCase {
   
   // MARK: - Error Cases
   
+  func testInterpolateThrowsWhenAnyIntermediatePointMissesComponents() {
+    // Pattern color has no `.cgColor.components`, so every index in the
+    // pre-fix implementation would silently shift. The fix enforces
+    // strict index parity with `colorPoints`, surfacing the error instead.
+    let red = UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 1.0)
+    let pattern = UIColor(patternImage: UIGraphicsImageRenderer(size: .init(width: 1, height: 1)).image { _ in })
+    let blue = UIColor(red: 0.0, green: 0.0, blue: 1.0, alpha: 1.0)
+    
+    XCTAssertThrowsError(try interpolator.interpolate(colorPoints: [red, pattern, blue], percentage: 0.5)) { error in
+      XCTAssertEqual(error as? LinearColorInterpolator.Error, .colorComponentsMissing)
+    }
+  }
+  
   func testInterpolateWithInsufficientColorPoints() {
     let red = UIColor(red: 1.0, green: 0.0, blue: 0.0, alpha: 1.0)
     let colorPoints = [red] // Only one color

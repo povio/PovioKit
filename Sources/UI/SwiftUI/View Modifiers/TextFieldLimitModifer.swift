@@ -14,7 +14,7 @@ public struct TextFieldLimitModifer: ViewModifier {
   
   public func body(content: Content) -> some View {
     content
-      .onChange(of: text) { newValue in
+      .onChange(of: text) { _, newValue in
         guard newValue.count > limit else { return }
         text = String(newValue.prefix(limit))
       }

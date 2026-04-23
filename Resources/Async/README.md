@@ -7,8 +7,8 @@ A package that includes async components and tools.
 ### Components
 | Component | Description |
 | :--- | :--- |
-| [AsyncThrottleSequence](/Sources/Async/AsyncThrottleSequence.swift) | A wrapper around an `AsyncSequence` that introduces a delay between tasks to control the rate at which elements are emitted. |
-| [AsyncDebounceSequence](/Sources/Async/AsyncDebounceSequence.swift) | A wrapper around an `AsyncSequence` that emits only the latest element after a quiet period. |
+| [AsyncDebounceSequence](/Sources/Async/AsyncDebounceSequence.swift) | Caller-driven debounce: each `next()` cancels the prior pending fetch and only proceeds after a quiet period. |
+| [AsyncSampleSequence](/Sources/Async/AsyncSampleSequence.swift) | Source-driven sampling: emits at most one element per window, collapsing bursts to the latest. |
 | [retry(policy:clock:operation:)](/Sources/Async/AsyncUtilities.swift) | Retries an async operation with configurable attempts and exponential backoff. |
 | [withTimeout(_:clock:operation:)](/Sources/Async/AsyncUtilities.swift) | Runs an async operation with a timeout and throws if the deadline is exceeded. |
 | [race](/Sources/Async/AsyncUtilities.swift) | Runs multiple operations in parallel and returns the first completed result. |
@@ -20,20 +20,20 @@ A package that includes async components and tools.
 
 ### Examples
 
-#### AsyncThrottleSequence
-
-```swift
-let throttledSearch = SearchAsyncSequence()
-  .throttle(clock: .suspending, delayBetweenTasks: .milliseconds(400))
-  .makeAsyncIterator()
-
-let result = try await throttledSearch.next()
-```
-
 #### AsyncDebounceSequence
 
 ```swift
-for try await query in userInputSequence.debounce(
+let debouncedSearch = SearchAsyncSequence()
+  .debounce(clock: .suspending, delayBetweenTasks: .milliseconds(400))
+  .makeAsyncIterator()
+
+let result = try await debouncedSearch.next()
+```
+
+#### AsyncSampleSequence
+
+```swift
+for try await query in userInputSequence.sample(
   clock: .suspending,
   delayBetweenElements: .milliseconds(300)
 ) {

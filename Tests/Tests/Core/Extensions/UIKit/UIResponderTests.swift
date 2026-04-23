@@ -10,6 +10,9 @@
 import XCTest
 import PovioKitCore
 
+// `UIResponder` / `UIViewController` construction and hierarchy methods
+// are main-actor isolated in Swift 6.
+@MainActor
 class UIResponderTests: XCTestCase {
   func test_firstResponder_returnsCorrectType() {
     let sut = makeSUT()

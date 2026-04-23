@@ -8,6 +8,11 @@ import XCTest
 import SwiftUI
 import PovioKitSwiftUI
 
+// SwiftUI's `View` builders are all `@MainActor`-isolated under
+// Swift 6, so the test methods must be main-actor too in order to
+// call them. XCTest dispatches `XCTestCase` methods on the main
+// queue, so this isolation is free at runtime.
+@MainActor
 final class ViewAndModifierExtensionsTests: XCTestCase {
   func testAnyTransitionSlideLeftIsAvailable() {
     let transition = AnyTransition.slideLeft

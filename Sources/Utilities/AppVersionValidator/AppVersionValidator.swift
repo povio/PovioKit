@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum AppVersionValidatorError: Swift.Error, Equatable {
+public enum AppVersionValidatorError: Swift.Error, Equatable, Sendable {
   case emptyVersionString
   case invalidVersionComponent(String)
 }
@@ -45,11 +45,28 @@ public final class AppVersionValidator {
   ) throws -> Bool {
     let appVersionComponents = try versionComponents(from: version)
     let requiredVersionComponents = try versionComponents(from: minimalRequiredVersion)
+
     for (required, app) in zip(requiredVersionComponents, appVersionComponents) {
       if app > required { return true }
       if app < required { return false }
     }
-    return appVersionComponents.count >= requiredVersionComponents.count
+
+    // All matched prefix components are equal. The comparison is now
+    // decided by whatever trailing components remain on the longer side.
+    if appVersionComponents.count > requiredVersionComponents.count {
+      // Any extra segment on the app side (even all zeros) keeps app >=
+      // required because "2.0.0" == "2" under semantic-version ordering.
+      return true
+    }
+    if appVersionComponents.count < requiredVersionComponents.count {
+      // Required has segments that app doesn't; app is only equal to
+      // required when all trailing required segments are zero. Otherwise
+      // required is strictly greater.
+      let start = appVersionComponents.count
+      let trailing = requiredVersionComponents[start...]
+      return trailing.allSatisfy { $0 == 0 }
+    }
+    return true
   }
 }
 

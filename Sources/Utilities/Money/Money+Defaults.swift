@@ -9,10 +9,12 @@
 import Foundation
 
 private let moneyDefaultsLock = NSLock()
-private var moneyDefaultsStorage = Money.Defaults()
+// Access to this global is serialised by `moneyDefaultsLock`, so it is safe
+// to share across threads despite being a mutable global.
+nonisolated(unsafe) private var moneyDefaultsStorage = Money.Defaults()
 
 public extension Money {
-  struct Defaults {
+  struct Defaults: Sendable {
     public var precision = 2
     public var currency = Currency.usd
     public var locale = Locale.current

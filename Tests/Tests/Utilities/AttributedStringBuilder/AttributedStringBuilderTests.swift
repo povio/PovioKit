@@ -11,6 +11,12 @@ import XCTest
 import UIKit
 import PovioKitUtilities
 
+// `AttributedStringBuilder` is `@MainActor`-isolated because its
+// `BuilderCompatible` protocol — and the only concrete conformers
+// (`UILabel`, `UITextField`) — are UIKit main-actor types. Marking the
+// test class `@MainActor` lets us call the builder's initializer and
+// `apply(...)` methods directly without trampolining through a Task.
+@MainActor
 final class AttributedStringBuilderTests: XCTestCase {
   
   // MARK: - Basic Initialization
@@ -182,6 +188,43 @@ final class AttributedStringBuilderTests: XCTestCase {
     
     // Should not crash with invalid range
     XCTAssertEqual(attributedString.string, "Hello", "Should handle invalid range gracefully")
+  }
+
+  /// A range covering the entire string (end == utf16.count) must be accepted.
+  func testSetFontAcceptsFullStringRange() {
+    let font = UIFont.systemFont(ofSize: 16)
+    let text = "Hello"
+    let attributedString = Builder(text: text)
+      .setFont(font, range: NSRange(location: 0, length: text.utf16.count))
+      .create()
+
+    let resultFont = attributedString.attribute(.font, at: 0, effectiveRange: nil) as? UIFont
+    XCTAssertEqual(resultFont, font, "Range spanning the whole string must be accepted.")
+  }
+
+  /// A range with negative length is invalid and must be ignored, not applied.
+  func testSetFontIgnoresNegativeLengthRange() {
+    let font = UIFont.systemFont(ofSize: 16)
+    let attributedString = Builder(text: "Hello")
+      .setFont(font, range: NSRange(location: 0, length: -1))
+      .create()
+
+    XCTAssertNil(
+      attributedString.attribute(.font, at: 0, effectiveRange: nil),
+      "Negative-length range must not produce attributes."
+    )
+  }
+
+  /// A range whose `location + length` would overflow `Int` must be rejected
+  /// rather than trap.
+  func testSetFontIgnoresOverflowingRange() {
+    let font = UIFont.systemFont(ofSize: 16)
+    let attributedString = Builder(text: "Hello")
+      .setFont(font, range: NSRange(location: Int.max - 1, length: Int.max))
+      .create()
+
+    XCTAssertEqual(attributedString.string, "Hello")
+    XCTAssertNil(attributedString.attribute(.font, at: 0, effectiveRange: nil))
   }
   
   // MARK: - Range-Based Color Attributes

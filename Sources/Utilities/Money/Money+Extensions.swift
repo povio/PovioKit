@@ -8,12 +8,6 @@
 
 import Foundation
 
-public extension Comparable {
-  func clamped(to limits: ClosedRange<Self>) -> Self {
-    return min(max(self, limits.lowerBound), limits.upperBound)
-  }
-}
-
 public extension Double {
   /**
    Formats the Double value as a currency string using the provided currencyCode.

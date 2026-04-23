@@ -9,7 +9,7 @@
 import AVFoundation.AVMediaFormat
 import PovioKitCore
 
-public struct CameraService {
+public struct CameraService: Sendable {
   /* see extension bellow for implementation */
   public init() { }
 }

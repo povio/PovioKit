@@ -7,9 +7,20 @@
 //
 
 import Foundation
+import PovioKitCore
 
 @propertyWrapper
-public struct UserDefault<Value: Codable> {
+public struct UserDefault<Value: Codable>: @unchecked Sendable {
+  // The wrapper is marked `@unchecked Sendable` so it is usable on
+  // `static var` declarations under Swift 6 strict concurrency. That
+  // is sound for all stored fields:
+  //   * `storage` (`UserDefaults`) is documented to be thread-safe.
+  //   * `keyObject` is immutable after construction.
+  //   * `JSONEncoder` / `JSONDecoder` are used only for their default
+  //     configuration; neither of them is mutated through this wrapper.
+  // `wrappedValue`'s setter is `nonmutating` so that the synthesized
+  // backing storage can be `let`, which is the whole reason the
+  // `static var` pattern is accepted by Swift 6.
   private let storage: UserDefaults
   private let keyObject: UserDefaultKey<Value>
   private let encoder: JSONEncoder
@@ -24,17 +35,28 @@ public struct UserDefault<Value: Codable> {
       
       // try to read as JSON-encoded Data
       if let data = storage.data(forKey: keyObject.key) {
-        if let value = try? decoder.decode(Value.self, from: data) {
-          return value
+        do {
+          return try decoder.decode(Value.self, from: data)
+        } catch {
+          Logger.error(
+            "UserDefault failed to decode stored value; falling back to the legacy path.",
+            params: ["key": keyObject.key, "error": error.localizedDescription]
+          )
         }
       }
-      
+
       // check for legacy non-encoded stored value
       if let oldValue = storage.object(forKey: keyObject.key) as? Value {
         // migrate to new format if it's a complex type
         if !isPrimitiveType(Value.self) {
-          if let encoded = try? encoder.encode(oldValue) {
+          do {
+            let encoded = try encoder.encode(oldValue)
             storage.set(encoded, forKey: keyObject.key)
+          } catch {
+            Logger.error(
+              "UserDefault failed to migrate legacy stored value to JSON; value will be re-migrated on next read.",
+              params: ["key": keyObject.key, "error": error.localizedDescription]
+            )
           }
         }
         return oldValue
@@ -43,13 +65,22 @@ public struct UserDefault<Value: Codable> {
       // return default value if no value is set
       return keyObject.defaultValue
     }
-    set {
+    nonmutating set {
       if storePrimitive(newValue) { // store primitive types directly (for @AppStorage compatibility)
-        // successfully stored as primitive
-      } else { // store complex types as JSON-encoded Data
-        if let encoded = try? encoder.encode(newValue) {
-          storage.set(encoded, forKey: keyObject.key)
-        }
+        return
+      }
+      // store complex types as JSON-encoded Data
+      do {
+        let encoded = try encoder.encode(newValue)
+        storage.set(encoded, forKey: keyObject.key)
+      } catch {
+        // We can't throw from a property-wrapper setter, but we must not
+        // silently drop the user's write — log it so the failure is
+        // actionable in release builds.
+        Logger.error(
+          "UserDefault failed to encode value; the write was dropped.",
+          params: ["key": keyObject.key, "error": error.localizedDescription]
+        )
       }
     }
   }
@@ -159,7 +190,10 @@ private extension UserDefault {
   }
 }
 
-public class UserDefaultKey<Value: Codable> {
+public final class UserDefaultKey<Value: Codable>: @unchecked Sendable {
+  // `@unchecked Sendable` is sound: all stored properties are `let`,
+  // `UserDefaults` is documented to be thread-safe, and `JSONEncoder`
+  // is used only for its existing configuration — never mutated.
   public let key: String
   public let defaultValue: Value
   public let storage: UserDefaults
@@ -198,8 +232,14 @@ public class UserDefaultKey<Value: Codable> {
       storage.set(urlValue, forKey: key)
     default:
       // Reset complex types as JSON
-      if let encoded = try? encoder.encode(defaultValue) {
+      do {
+        let encoded = try encoder.encode(defaultValue)
         storage.set(encoded, forKey: key)
+      } catch {
+        Logger.error(
+          "UserDefault failed to encode default value during reset; the key was not cleared.",
+          params: ["key": key, "error": error.localizedDescription]
+        )
       }
     }
   }

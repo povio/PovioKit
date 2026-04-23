@@ -8,7 +8,7 @@
 
 import Foundation
 
-public enum Currency: Codable, Equatable, Hashable, CaseIterable {
+public enum Currency: Codable, Equatable, Hashable, CaseIterable, Sendable {
   /// U.S. Dollar (USD)
   case usd
   /// European Euro (EUR)

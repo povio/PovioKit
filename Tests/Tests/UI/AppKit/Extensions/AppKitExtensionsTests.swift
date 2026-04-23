@@ -3,6 +3,10 @@ import XCTest
 import AppKit
 @testable import PovioKitAppKit
 
+// `NSWindow` / `NSView` initializers and properties are
+// `@MainActor`-isolated on recent SDKs, so the suite runs on the
+// main actor — matching how XCTest drives `XCTestCase` methods.
+@MainActor
 final class AppKitExtensionsTests: XCTestCase {
   func testWindowBoundsUsesFrameSizeWithZeroOrigin() {
     let contentRect = NSRect(x: 24, y: 32, width: 320, height: 180)

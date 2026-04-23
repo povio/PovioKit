@@ -10,30 +10,35 @@ import XCTest
 import PovioKitCore
 import PovioKitUtilities
 
+// The whole suite runs on the main actor. That's consistent with how
+// `XCTestCase` dispatches its test methods, and it lets the nested
+// `Defaults` / `CustomDefaults` namespaces host `@UserDefault static var …`
+// declarations under Swift 6 strict concurrency — the wrapped statics
+// are main-actor isolated rather than nonisolated global mutable state.
+@MainActor
 class UserDefaultTests: XCTestCase {
-  let userDefaults: UserDefaults = .standard
-  
-  override func tearDownWithError() throws {
+  /// Suite-scoped storage so these tests never write into
+  /// `UserDefaults.standard` (which would leak across runs and collide with
+  /// a developer's own preferences on their machine).
+  static let suiteName = "com.poviokit.tests.UserDefaultTests"
+  static let userDefaults: UserDefaults = {
+    let storage = UserDefaults(suiteName: suiteName)!
+    storage.removePersistentDomain(forName: suiteName)
+    return storage
+  }()
+
+  var userDefaults: UserDefaults { Self.userDefaults }
+
+  override nonisolated func tearDownWithError() throws {
     try super.tearDownWithError()
-    userDefaults.removeObject(forKey: Defaults.testBoolKey)
-    userDefaults.removeObject(forKey: Defaults.testStringKey)
-    userDefaults.removeObject(forKey: Defaults.testDataKey)
-    userDefaults.removeObject(forKey: Defaults.testDataModelKey)
-    userDefaults.removeObject(forKey: Defaults.testIntKey)
-    userDefaults.removeObject(forKey: Defaults.testDoubleKey)
-    userDefaults.removeObject(forKey: Defaults.testFloatKey)
-    userDefaults.removeObject(forKey: Defaults.testDateKey)
-    userDefaults.removeObject(forKey: Defaults.testUrlKey)
-    userDefaults.removeObject(forKey: Defaults.testOptionalIntKey)
-    userDefaults.removeObject(forKey: Defaults.testOptionalStringKey)
-    userDefaults.removeObject(forKey: Defaults.testArrayKey)
-    userDefaults.removeObject(forKey: Defaults.testDictionaryKey)
-    userDefaults.removeObject(forKey: Defaults.testComplexMigrationKey)
-    userDefaults.removeObject(forKey: Defaults.testEnabledFeatureKey)
-    userDefaults.removeObject(forKey: Defaults.testDefaultScoreKey)
-    userDefaults.removeObject(forKey: Defaults.testDefaultPiKey)
-    userDefaults.removeObject(forKey: Defaults.testDefaultEulerKey)
-    userDefaults.removeObject(forKey: CustomDefaults.customKey)
+    // `XCTestCase.tearDownWithError` is declared nonisolated on the
+    // base class, so the override must stay nonisolated too. XCTest
+    // drives `@MainActor` test classes' teardown on the main thread
+    // in practice, so hopping back via `assumeIsolated` is sound.
+    MainActor.assumeIsolated {
+      Self.userDefaults.removePersistentDomain(forName: Self.suiteName)
+      CustomDefaults.customStorage.removeObject(forKey: CustomDefaults.customKey)
+    }
   }
   
   func testSaveStringValue() {
@@ -55,12 +60,12 @@ class UserDefaultTests: XCTestCase {
   }
   
   func testMigration() {
-    var isAuth = UserDefaults.standard.bool(forKey: Defaults.testBoolKey)
+    var isAuth = userDefaults.bool(forKey: Defaults.testBoolKey)
     XCTAssertFalse(isAuth) // on first run this must be false
-    
-    UserDefaults.standard.set(true, forKey: Defaults.testBoolKey)
-    isAuth = UserDefaults.standard.bool(forKey: Defaults.testBoolKey)
-    XCTAssertTrue(isAuth) // not it should be true
+
+    userDefaults.set(true, forKey: Defaults.testBoolKey)
+    isAuth = userDefaults.bool(forKey: Defaults.testBoolKey)
+    XCTAssertTrue(isAuth) // now it should be true
     XCTAssertTrue(Defaults.isAuthenticated) // after migration value should also be true
   }
 
@@ -312,18 +317,14 @@ class UserDefaultTests: XCTestCase {
   // MARK: - Custom Storage Tests
   
   func testCustomUserDefaults() {
-    // Given
-    let customDefaults = UserDefaults(suiteName: "com.test.custom")!
+    let customDefaults = CustomDefaults.customStorage
     let givenValue = "Custom Storage Value"
-    
-    // When
+
     CustomDefaults.customValue = givenValue
-    
-    // Then
+
     XCTAssertEqual(givenValue, CustomDefaults.customValue)
     XCTAssertEqual(givenValue, customDefaults.string(forKey: CustomDefaults.customKey))
-    
-    // Cleanup
+
     customDefaults.removeObject(forKey: CustomDefaults.customKey)
   }
   
@@ -409,21 +410,26 @@ class UserDefaultTests: XCTestCase {
   
   func testNotificationPostedOnValueChange() {
     // Given
-    var notificationReceived = false
+    // Box the flag in a reference type so it can be mutated from the
+    // `@Sendable` observer block without tripping strict concurrency.
+    // `UserDefaults.didChangeNotification` is posted synchronously on
+    // the thread that mutated the defaults, so no locking is needed.
+    final class Flag: @unchecked Sendable { var value = false }
+    let notificationReceived = Flag()
     
     let observer = NotificationCenter.default.addObserver(
       forName: UserDefaults.didChangeNotification,
       object: userDefaults,
       queue: nil
     ) { _ in
-      notificationReceived = true
+      notificationReceived.value = true
     }
     
     // When
     Defaults.screenName = "New Screen Name"
     
     // Then - notification should be posted synchronously
-    XCTAssertTrue(notificationReceived, "UserDefaults.didChangeNotification should be posted")
+    XCTAssertTrue(notificationReceived.value, "UserDefaults.didChangeNotification should be posted")
     
     // Cleanup
     NotificationCenter.default.removeObserver(observer)
@@ -555,85 +561,96 @@ class UserDefaultTests: XCTestCase {
 }
 
 extension UserDefaultTests {
+  @MainActor
   struct Defaults {
-    static var testBoolKey = "test_bool_key"
-    static var testStringKey = "test_string_key"
-    static var testDataKey = "test_data_key"
-    static var testDataModelKey = "test_data_model_key"
-    static var testIntKey = "test_int_key"
-    static var testDoubleKey = "test_double_key"
-    static var testFloatKey = "test_float_key"
-    static var testDateKey = "test_date_key"
-    static var testUrlKey = "test_url_key"
-    static var testOptionalIntKey = "test_optional_int_key"
-    static var testOptionalStringKey = "test_optional_string_key"
-    static var testArrayKey = "test_array_key"
-    static var testDictionaryKey = "test_dictionary_key"
-    static var testComplexMigrationKey = "test_complex_migration_key"
-    static var testEnabledFeatureKey = "test_enabled_feature_key"
-    static var testDefaultScoreKey = "test_default_score_key"
-    static var testDefaultPiKey = "test_default_pi_key"
-    static var testDefaultEulerKey = "test_default_euler_key"
-    
-    @UserDefault(defaultValue: false, key: testBoolKey)
+    static let testBoolKey = "test_bool_key"
+    static let testStringKey = "test_string_key"
+    static let testDataKey = "test_data_key"
+    static let testDataModelKey = "test_data_model_key"
+    static let testIntKey = "test_int_key"
+    static let testDoubleKey = "test_double_key"
+    static let testFloatKey = "test_float_key"
+    static let testDateKey = "test_date_key"
+    static let testUrlKey = "test_url_key"
+    static let testOptionalIntKey = "test_optional_int_key"
+    static let testOptionalStringKey = "test_optional_string_key"
+    static let testArrayKey = "test_array_key"
+    static let testDictionaryKey = "test_dictionary_key"
+    static let testComplexMigrationKey = "test_complex_migration_key"
+    static let testEnabledFeatureKey = "test_enabled_feature_key"
+    static let testDefaultScoreKey = "test_default_score_key"
+    static let testDefaultPiKey = "test_default_pi_key"
+    static let testDefaultEulerKey = "test_default_euler_key"
+
+    /// All wrappers in this struct go through the isolated test suite so the
+    /// tests are safe to run in parallel with other suites and never touch
+    /// `UserDefaults.standard`.
+    static let storage = UserDefaultTests.userDefaults
+
+    @UserDefault(defaultValue: false, key: testBoolKey, storage: storage)
     static var isAuthenticated: Bool
-    
-    @UserDefault(defaultValue: "default", key: testStringKey)
+
+    @UserDefault(defaultValue: "default", key: testStringKey, storage: storage)
     static var screenName: String
-    
-    @UserDefault(defaultValue: nil, key: testDataKey)
+
+    @UserDefault(defaultValue: nil, key: testDataKey, storage: storage)
     static var profileData: Data?
-    
-    @UserDefault(defaultValue: TestDataModel(id: "1", number: 1), key: testDataModelKey)
+
+    @UserDefault(defaultValue: TestDataModel(id: "1", number: 1), key: testDataModelKey, storage: storage)
     static var dataModel: TestDataModel
-    
-    @UserDefault(defaultValue: 0, key: testIntKey)
+
+    @UserDefault(defaultValue: 0, key: testIntKey, storage: storage)
     static var userAge: Int
-    
-    @UserDefault(defaultValue: 0.0, key: testDoubleKey)
+
+    @UserDefault(defaultValue: 0.0, key: testDoubleKey, storage: storage)
     static var piValue: Double
-    
-    @UserDefault(defaultValue: 0.0, key: testFloatKey)
+
+    @UserDefault(defaultValue: 0.0, key: testFloatKey, storage: storage)
     static var eulerNumber: Float
-    
-    @UserDefault(defaultValue: Date(timeIntervalSince1970: 0), key: testDateKey)
+
+    @UserDefault(defaultValue: Date(timeIntervalSince1970: 0), key: testDateKey, storage: storage)
     static var lastLoginDate: Date
-    
-    @UserDefault(defaultValue: URL(string: "https://default.com")!, key: testUrlKey)
+
+    @UserDefault(defaultValue: URL(string: "https://default.com")!, key: testUrlKey, storage: storage)
     static var apiBaseUrl: URL
-    
-    @UserDefault(defaultValue: nil, key: testOptionalIntKey)
+
+    @UserDefault(defaultValue: nil, key: testOptionalIntKey, storage: storage)
     static var optionalAge: Int?
-    
-    @UserDefault(defaultValue: nil, key: testOptionalStringKey)
+
+    @UserDefault(defaultValue: nil, key: testOptionalStringKey, storage: storage)
     static var optionalName: String?
-    
-    @UserDefault(defaultValue: [], key: testArrayKey)
+
+    @UserDefault(defaultValue: [], key: testArrayKey, storage: storage)
     static var dataModelArray: [TestDataModel]
-    
-    @UserDefault(defaultValue: [:], key: testDictionaryKey)
+
+    @UserDefault(defaultValue: [:], key: testDictionaryKey, storage: storage)
     static var stringDictionary: [String: String]
-    
-    @UserDefault(defaultValue: TestDataModel(id: "default", number: 0), key: testComplexMigrationKey)
+
+    @UserDefault(defaultValue: TestDataModel(id: "default", number: 0), key: testComplexMigrationKey, storage: storage)
     static var complexMigration: TestDataModel
-    
-    // Properties with non-zero/non-false defaults to test missing key behavior
-    @UserDefault(defaultValue: true, key: testEnabledFeatureKey)
+
+    @UserDefault(defaultValue: true, key: testEnabledFeatureKey, storage: storage)
     static var enabledFeature: Bool
-    
-    @UserDefault(defaultValue: 42, key: testDefaultScoreKey)
+
+    @UserDefault(defaultValue: 42, key: testDefaultScoreKey, storage: storage)
     static var defaultScore: Int
-    
-    @UserDefault(defaultValue: 3.14, key: testDefaultPiKey)
+
+    @UserDefault(defaultValue: 3.14, key: testDefaultPiKey, storage: storage)
     static var defaultPi: Double
-    
-    @UserDefault(defaultValue: 2.71, key: testDefaultEulerKey)
+
+    @UserDefault(defaultValue: 2.71, key: testDefaultEulerKey, storage: storage)
     static var defaultEuler: Float
   }
   
+  @MainActor
   struct CustomDefaults {
-    static var customKey = "custom_test_key"
-    static let customStorage = UserDefaults(suiteName: "com.test.custom")!
+    static let customKey = "custom_test_key"
+    // Use the same isolated suite as the main test case so nothing spills
+    // into other suites, but keep a distinct reference to mirror how a real
+    // consumer would pass a custom `storage`.
+    static let customStorage = UserDefaults(
+      suiteName: "com.poviokit.tests.UserDefaultTests.custom"
+    )!
     
     @UserDefault(defaultValue: "default", key: customKey, storage: customStorage)
     static var customValue: String

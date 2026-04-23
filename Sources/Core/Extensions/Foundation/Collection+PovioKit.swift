@@ -66,6 +66,12 @@ public extension Collection {
   /// - Returns: A dictionary where the keys are `Date` objects representing the grouped date components,
   ///           and the values are arrays of elements that correspond to each grouped date.
   ///
+  /// - Note: On the rare occasion that `calendar.date(from:)` cannot
+  ///         reconstruct a normalized date (for example due to a
+  ///         daylight-saving-time gap), the element's raw date is used as the
+  ///         grouping key instead. This is the only case where the returned
+  ///         dictionary can mix normalized and unnormalized keys.
+  ///
   /// ## Example
   /// ```swift
   /// struct Event {

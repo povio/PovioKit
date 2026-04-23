@@ -26,7 +26,7 @@ public struct MeasureSizeModifier: ViewModifier {
             .onAppear {
               onSize(geo.size)
             }
-            .onChange(of: geo.size) { size in
+            .onChange(of: geo.size) { _, size in
               onSize(size)
             }
         }

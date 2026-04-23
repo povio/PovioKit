@@ -8,10 +8,13 @@
 
 import Foundation
 
-public enum ExifError: Error {
+public enum ExifError: Error, Hashable, Sendable {
   case createImageSource
   case getImageProperties
   case getImageType
   case createImageDestination
   case copyImageSource
+  /// `CGImageMetadataSetValueMatchingImageProperty` returned `false` for the
+  /// specified EXIF key; the update was rejected by ImageIO.
+  case setMetadataValue(key: String)
 }
