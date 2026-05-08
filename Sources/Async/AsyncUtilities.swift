@@ -104,8 +104,12 @@ public func retry<R: Sendable, C: Clock>(
     }
   }
 
-  // This line is unreachable because maxAttempts is always at least 1.
-  throw AsyncTimeoutError.timedOut
+  // Unreachable: `policy.maxAttempts` is clamped to `>= 1` in
+  // `AsyncRetryPolicy.init`, so the loop above either returns on a
+  // successful attempt or throws on the last failed one. A future refactor
+  // that makes this reachable is a programmer error rather than a domain
+  // condition, hence `preconditionFailure` over a custom error case.
+  preconditionFailure("retry(policy:clock:operation:) reached an unreachable state. policy.maxAttempts must be >= 1.")
 }
 
 /// Executes an async operation with retries using `SuspendingClock`.

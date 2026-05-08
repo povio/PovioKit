@@ -56,6 +56,7 @@ struct ContentView: View {
                   .navigationTitle(component.name)
               case .scrollViewWithOffset:
                 ScrollViewWithOffsetComponent()
+                  .navigationTitle(component.name)
                   .navigationBarTitleDisplayMode(.inline)
               case .deviceShake:
                 DeviceShakeComponent()

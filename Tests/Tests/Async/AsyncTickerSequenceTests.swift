@@ -70,6 +70,39 @@ final class AsyncTickerSequenceTests: XCTestCase {
     XCTAssertEqual(instant.offset, .milliseconds(80))
   }
 
+  /// `interval = .zero` is permitted (after clamping) and degenerates to
+  /// "fire on every iteration". Document the behavior so any future
+  /// tightening of the contract is a test-visible decision.
+  func testTickerWithZeroIntervalEmitsBackToBack() async throws {
+    let clock = TestClock()
+    let ticker = AsyncTickerSequence(
+      clock: clock,
+      interval: .zero,
+      initialDelay: .milliseconds(10)
+    )
+    let task = Task { () -> [TestClock.Instant] in
+      var iterator = ticker.makeAsyncIterator()
+      var ticks: [TestClock.Instant] = []
+      for _ in 0 ..< 3 {
+        if let tick = try await iterator.next() {
+          ticks.append(tick)
+        }
+      }
+      return ticks
+    }
+
+    await clock.waitForSleepers(count: 1)
+    await clock.advance(by: .milliseconds(10))
+
+    let ticks = try await task.value
+    XCTAssertEqual(ticks.count, 3)
+    // Every tick lands at the same instant — the initial delay's end —
+    // because zero-interval means `nextTick` never advances.
+    XCTAssertEqual(ticks[0].offset, .milliseconds(10))
+    XCTAssertEqual(ticks[1].offset, .milliseconds(10))
+    XCTAssertEqual(ticks[2].offset, .milliseconds(10))
+  }
+
   /// The ticker advances `nextTick` from the previous `nextTick`, not from
   /// `clock.now`, so a slow consumer doesn't cause the interval to drift.
   /// This test jumps past several intervals in a single advance and asserts

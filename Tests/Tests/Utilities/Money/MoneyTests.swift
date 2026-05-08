@@ -112,19 +112,30 @@ final class MoneyTests: XCTestCase {
   // MARK: - Precision
 
   func testTrimPrecision() {
-    XCTAssertEqual(Money(amount: 20000, precision: 4).trimedPrecision().precision, 0)
-    XCTAssertEqual(Money(amount: 20000, precision: 4).trimedPrecision().amount, 2)
-    XCTAssertEqual(Money(amount: 20000, precision: 4).trimedPrecision(), Money(amount: 2000, precision: 3))
-    XCTAssertEqual(Money(amount: 20000, precision: 4).trimedPrecision(), Money(amount: 2, precision: 0))
+    XCTAssertEqual(Money(amount: 20000, precision: 4).trimmedPrecision().precision, 0)
+    XCTAssertEqual(Money(amount: 20000, precision: 4).trimmedPrecision().amount, 2)
+    XCTAssertEqual(Money(amount: 20000, precision: 4).trimmedPrecision(), Money(amount: 2000, precision: 3))
+    XCTAssertEqual(Money(amount: 20000, precision: 4).trimmedPrecision(), Money(amount: 2, precision: 0))
   }
 
   func testTrimPrecisionResetsZeroAmount() {
     let initial = Money(amount: 0, currency: .usd, precision: 4)
-    let trimmed = initial.trimedPrecision()
+    let trimmed = initial.trimmedPrecision()
 
     XCTAssertEqual(trimmed.amount, 0)
     XCTAssertEqual(trimmed.precision, 0)
     XCTAssertEqual(trimmed.currency, .usd)
+  }
+
+  /// The deprecated misspelled alias must keep returning the same
+  /// canonical value as ``Money/trimmedPrecision()``. The test method
+  /// itself is `@available(*, deprecated)` so the unavoidable
+  /// deprecation warning at the call site does not surface as a build
+  /// warning for the suite.
+  @available(*, deprecated, message: "Validates the deprecated `trimedPrecision()` alias.")
+  func testTrimedPrecisionDeprecatedAliasMatchesNewSpelling() {
+    let original = Money(amount: 20000, currency: .eur, precision: 4)
+    XCTAssertEqual(original.trimedPrecision(), original.trimmedPrecision())
   }
 
   // MARK: - Predicates

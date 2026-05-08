@@ -54,7 +54,7 @@ extension Money: Equatable {
   public func hash(into hasher: inout Hasher) {
     // Canonical form (trimmed precision) guarantees consistency with `==`:
     // any two Money values that compare equal hash to the same value.
-    let normalized = trimedPrecision()
+    let normalized = trimmedPrecision()
     hasher.combine(normalized.amount)
     hasher.combine(normalized.precision)
     hasher.combine(normalized.currency)
@@ -122,10 +122,21 @@ public extension Money {
 
   /// Returns a new instance with precision trimmed down to the safest
   /// possible scale.
-  func trimedPrecision() -> Self {
+  func trimmedPrecision() -> Self {
     var res = self
     res.trimPrecision()
     return res
+  }
+
+  /// Returns a new instance with precision trimmed down to the safest
+  /// possible scale.
+  ///
+  /// Misspelled alias of ``trimmedPrecision()`` kept for backwards
+  /// compatibility with callers that adopted the API before the typo was
+  /// caught.
+  @available(*, deprecated, renamed: "trimmedPrecision", message: "Use `trimmedPrecision()` (correct spelling). The old name is preserved for source compatibility and will be removed in a future major release.")
+  func trimedPrecision() -> Self {
+    trimmedPrecision()
   }
 
   /// Trims the precision in-place to the safest possible scale.
@@ -262,12 +273,31 @@ public extension Money {
 
 /// Aligns two Money instances to the maximum precision of the two. The
 /// operation is symmetric: both operands are mutated as needed.
+///
+/// We multiply by an integer power of ten rather than going through
+/// `Double` + `pow(_:_:)` so that:
+///   * the conversion is exact for every precision delta that fits in
+///     `Money.Cents` (up to 18 for Int64), and
+///   * any overflow traps deterministically rather than silently rounding
+///     in the floating-point cast.
 fileprivate func alignToSamePrecision(m1: inout Money, m2: inout Money) {
   if m1.precision > m2.precision {
-    m2.amount = m2.amount * Money.Cents(pow(10, Double(m1.precision - m2.precision)))
+    m2.amount *= integerPowerOfTen(m1.precision - m2.precision)
     m2.precision = m1.precision
   } else if m1.precision < m2.precision {
-    m1.amount = m1.amount * Money.Cents(pow(10, Double(m2.precision - m1.precision)))
+    m1.amount *= integerPowerOfTen(m2.precision - m1.precision)
     m1.precision = m2.precision
   }
+}
+
+/// Returns 10^exponent computed in `Money.Cents` (Int) without going
+/// through floating point. Negative exponents are a programmer error
+/// because the public callers always pass `max - min` of two precisions.
+fileprivate func integerPowerOfTen(_ exponent: Int) -> Money.Cents {
+  precondition(exponent >= 0, "integerPowerOfTen requires a non-negative exponent")
+  var result: Money.Cents = 1
+  for _ in 0..<exponent {
+    result *= 10
+  }
+  return result
 }

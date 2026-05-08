@@ -28,8 +28,10 @@ A `Money` value is initialised with:
 
 ### Methods
 
-- `trimedPrecision()` / `trimPrecision()` — trim trailing zeros in the
-  canonical representation without changing the unit value.
+- `trimmedPrecision()` / `trimPrecision()` — trim trailing zeros in the
+  canonical representation without changing the unit value. (The
+  misspelled `trimedPrecision()` alias is preserved for backwards
+  compatibility but is deprecated.)
 
 ### Arithmetic
 

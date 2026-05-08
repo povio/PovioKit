@@ -14,7 +14,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		990C1776297E9D54005EC7B7 /* .. */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ..; sourceTree = "<group>"; };
+		990C1776297E9D54005EC7B7 /* PovioKit */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = PovioKit; path = ..; sourceTree = "<group>"; };
 		998E6EF3297E82F700D33909 /* Storybook.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Storybook.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -40,7 +40,7 @@
 		990C1775297E9D54005EC7B7 /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				990C1776297E9D54005EC7B7 /* .. */,
+				990C1776297E9D54005EC7B7 /* PovioKit */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -280,7 +280,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"Storybook/Preview Content\"";
 				DEVELOPMENT_TEAM = 7G58AP3AJX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
@@ -317,7 +316,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
-				DEVELOPMENT_ASSET_PATHS = "\"Storybook/Preview Content\"";
 				DEVELOPMENT_TEAM = 7G58AP3AJX;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;

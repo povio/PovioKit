@@ -32,8 +32,19 @@ public actor InAppPurchaseService {
 
   private let productIdentifiers: [IAPProduct]
   private var updateListenerTask: Task<Void, Error>?
-  private var availableProducts: [Product] = []
-  private var purchasedProducts: [Product] = []
+
+  /// Products available for purchase, populated by ``bootstrap()`` and
+  /// kept up-to-date as transactions arrive on `Transaction.updates`.
+  ///
+  /// Empty until the initial product fetch completes; call
+  /// ``bootstrap()`` and `await` it to take a synchronous dependency on
+  /// this list.
+  public private(set) var availableProducts: [Product] = []
+
+  /// Products that the current user is currently entitled to. Refreshed
+  /// after every successful ``purchase(product:options:)`` and on each
+  /// transaction update from `Transaction.updates`.
+  public private(set) var purchasedProducts: [Product] = []
 
   /// Initialize new InAppPurchase with all available products.
   ///
