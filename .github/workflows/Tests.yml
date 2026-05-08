@@ -28,7 +28,7 @@ jobs:
         xcode-version: latest-stable
 
     - name: Build project
-      run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild build-for-testing -destination 'name=iPhone 17 Pro,OS=26.4' -scheme 'PovioKit-Package' | xcpretty
+      run: set -o pipefail && env NSUnbufferedIO=YES xcodebuild build-for-testing -destination 'name=iPhone 17 Pro,OS=26.4.1' -scheme 'PovioKit-Package' | xcpretty
 
     # `-enableCodeCoverage YES` + `-resultBundlePath` make the xcresult bundle
     # contain coverage data so the summary step below (and any future Codecov
@@ -36,7 +36,7 @@ jobs:
     - name: Run tests
       run: |
         set -o pipefail && env NSUnbufferedIO=YES xcodebuild test-without-building \
-          -destination 'name=iPhone 17 Pro,OS=26.4' \
+          -destination 'name=iPhone 17 Pro,OS=26.4.1' \
           -scheme 'PovioKit-Package' \
           -enableCodeCoverage YES \
           -resultBundlePath TestResults.xcresult \
