@@ -112,13 +112,13 @@ private struct AnimatedImageViewRepresentable: UIViewRepresentable {
   }
   
   func makeCoordinator() -> Coordinator {
-    Coordinator(onAnimationStart: onAnimationStart, onAnimationEnd: onAnimationEnd)
+    Coordinator(onAnimationEnd: onAnimationEnd)
   }
   
   class Coordinator: NSObject, AnimatedImageViewDelegate {
     let onEnd: (() -> Void)?
 
-    init(onAnimationStart: (() -> Void)?, onAnimationEnd: (() -> Void)?) {
+    init(onAnimationEnd: (() -> Void)?) {
       self.onEnd = onAnimationEnd
     }
 

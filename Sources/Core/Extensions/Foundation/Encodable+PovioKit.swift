@@ -8,6 +8,17 @@
 
 import Foundation
 
+public enum EncodableJSONError: Error, LocalizedError, Equatable, Sendable {
+  case invalidTopLevelObject
+  
+  public var errorDescription: String? {
+    switch self {
+    case .invalidTopLevelObject:
+      return "Encoded payload is not a JSON object dictionary."
+    }
+  }
+}
+
 public extension Encodable {
   /// Encodes given encodable object into json/dictionary.
   ///
@@ -25,6 +36,9 @@ public extension Encodable {
   func toJSON(with encoder: JSONEncoder) throws -> [String: Any] {
     let data = try encoder.encode(self)
     let json = try JSONSerialization.jsonObject(with: data, options: [])
-    return (json as? [String: Any]) ?? [:]
+    guard let dictionary = json as? [String: Any] else {
+      throw EncodableJSONError.invalidTopLevelObject
+    }
+    return dictionary
   }
 }

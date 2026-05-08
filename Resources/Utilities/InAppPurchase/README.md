@@ -1,7 +1,6 @@
 # InAppPurchaseService
 
 Helper for implementation of InApp puchase mehanism in the app.
-> Important: InAppPurchaseService is supported from iOS 15.0
 
 ## Overview  
 

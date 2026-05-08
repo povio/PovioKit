@@ -9,6 +9,12 @@
 #if os(iOS)
 import UIKit
 
+/// `BuilderCompatible` exists to attach an `AttributedStringBuilder` to UIKit
+/// text-carrying views (`UILabel`, `UITextField`). Those views are
+/// `@MainActor`-isolated, so the protocol — and by extension the builder —
+/// is as well. This avoids crossing isolation boundaries when
+/// `BuilderCompatible` conformances are declared on UIKit classes.
+@MainActor
 public protocol BuilderCompatible: AnyObject {
   var attributedText: NSAttributedString? { get set }
   var text: String? { get }
@@ -19,6 +25,7 @@ extension BuilderCompatible {
   public var bd: AttributedStringBuilder { return AttributedStringBuilder(self) }
 }
 
+@MainActor
 public final class AttributedStringBuilder {
   private let compatible: BuilderCompatible?
   
@@ -210,10 +217,10 @@ extension Builder {
 // MARK: - Private Methods
 private extension Builder {
   func validate(range: NSRange) -> Bool {
-    if text.utf16.count < range.location + range.length || range.location < 0 {
-      return false
-    }
-    return true
+    guard range.location >= 0, range.length >= 0 else { return false }
+    let (end, overflowed) = range.location.addingReportingOverflow(range.length)
+    guard !overflowed else { return false }
+    return end <= text.utf16.count
   }
 }
 #endif

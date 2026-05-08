@@ -227,5 +227,22 @@ final class DoubleConversionTests: XCTestCase {
     
     XCTAssertEqual(backToKg, original, accuracy: 0.0001, "Round-trip conversion should return to original value")
   }
+  
+  // MARK: - Mismatched Dimension
+  
+  func testMismatchedDimensionsReturnNaN() {
+    let value: Double = 100
+    let result = value.convert(from: UnitLength.meters, to: UnitMass.kilograms)
+    
+    XCTAssertTrue(result.isNaN, "Converting between incompatible dimensions should return .nan")
+  }
+  
+  func testMismatchedDimensionsDoNotTrap() {
+    let value: Double = 42
+    
+    XCTAssertNoThrow({
+      _ = value.convert(from: UnitTemperature.celsius, to: UnitLength.feet)
+    }(), "Incompatible dimension conversions should not trap the process")
+  }
 }
 

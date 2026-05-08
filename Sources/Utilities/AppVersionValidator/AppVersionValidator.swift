@@ -1,12 +1,17 @@
 //
 //  AppVersionValidator.swift
-//  Alamofire
+//  PovioKit
 //
 //  Created by Toni Kocjan on 16/02/2021.
 //  Copyright © 2026 Povio Inc. All rights reserved.
 //
 
 import Foundation
+
+public enum AppVersionValidatorError: Swift.Error, Equatable, Sendable {
+  case emptyVersionString
+  case invalidVersionComponent(String)
+}
 
 public final class AppVersionValidator {
   public init() {}
@@ -40,27 +45,46 @@ public final class AppVersionValidator {
   ) throws -> Bool {
     let appVersionComponents = try versionComponents(from: version)
     let requiredVersionComponents = try versionComponents(from: minimalRequiredVersion)
+
     for (required, app) in zip(requiredVersionComponents, appVersionComponents) {
       if app > required { return true }
       if app < required { return false }
     }
-    return appVersionComponents.count >= requiredVersionComponents.count
+
+    // All matched prefix components are equal. The comparison is now
+    // decided by whatever trailing components remain on the longer side.
+    if appVersionComponents.count > requiredVersionComponents.count {
+      // Any extra segment on the app side (even all zeros) keeps app >=
+      // required because "2.0.0" == "2" under semantic-version ordering.
+      return true
+    }
+    if appVersionComponents.count < requiredVersionComponents.count {
+      // Required has segments that app doesn't; app is only equal to
+      // required when all trailing required segments are zero. Otherwise
+      // required is strictly greater.
+      let start = appVersionComponents.count
+      let trailing = requiredVersionComponents[start...]
+      return trailing.allSatisfy { $0 == 0 }
+    }
+    return true
   }
 }
 
 private extension AppVersionValidator {
   func versionComponents(from string: String) throws -> [Int] {
-    let collection = try string
-      .components(separatedBy: ".")
-      .map { try Int(throwable: $0) }
-    guard !collection.isEmpty else { throw NSError(domain: "com.poviokit.version-validator", code: -4, userInfo: nil) }
-    return collection
-  }
-}
-
-fileprivate extension Int {
-  init(throwable string: String) throws {
-    guard let intValue = Int(string) else { throw NSError(domain: "com.poviokit.version-validator", code: -3, userInfo: nil) }
-    self = intValue
+    guard string.isEmpty == false else {
+      throw AppVersionValidatorError.emptyVersionString
+    }
+    let components = string.components(separatedBy: ".")
+    let numbers = try components.map { component in
+      guard component.isEmpty == false else {
+        throw AppVersionValidatorError.invalidVersionComponent(component)
+      }
+      guard let number = Int(component) else {
+        throw AppVersionValidatorError.invalidVersionComponent(component)
+      }
+      return number
+    }
+    return numbers
   }
 }

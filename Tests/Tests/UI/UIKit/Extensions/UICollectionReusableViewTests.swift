@@ -10,6 +10,8 @@
 import XCTest
 import PovioKitCore
 
+// `UICollectionReusableView.identifier` is main-actor isolated in Swift 6.
+@MainActor
 class UICollectionReusableViewTests: XCTestCase {
   func test_identifier_returnsCorrectIdentifier() {
     let SUTs: [(expectedIdentifier: String, cell: UICollectionReusableView.Type)] = [("IdentifierTest", IdentifierTest.self), ("SomeCustomCell", SomeCustomCell.self)]

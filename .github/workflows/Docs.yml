@@ -1,0 +1,105 @@
+name: Docs
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-docs:
+    runs-on: macos-26-xlarge
+    # `swift-docc-plugin` is scoped behind this env var in `Package.swift` so that
+    # PovioKit consumers don't have to resolve it in their own package graph.
+    # It's required for `swift package generate-documentation` to be available.
+    env:
+      POVIOKIT_BUILD_DOCS: "1"
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v5
+
+    - name: Load Latest Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: latest-stable
+
+    - name: Generate Static DocC Documentation
+      run: |
+        set -euo pipefail
+        SITE_DIR=".build/DocC/site"
+        mkdir -p "$SITE_DIR"
+
+        targets=(
+          PovioKitCore
+          PovioKitUtilities
+          PovioKitAsync
+          PovioKitUIKit
+          PovioKitSwiftUI
+          PovioKitAppKit
+        )
+
+        for target in "${targets[@]}"; do
+          target_output="$SITE_DIR/$target"
+          mkdir -p "$target_output"
+          swift package \
+            --allow-writing-to-directory "$target_output" \
+            generate-documentation \
+            --target "$target" \
+            --disable-indexing \
+            --transform-for-static-hosting \
+            --hosting-base-path "PovioKit/$target" \
+            --output-path "$target_output"
+        done
+
+        cat > "$SITE_DIR/index.html" <<'EOF'
+        <!doctype html>
+        <html lang="en">
+        <head>
+          <meta charset="utf-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <title>PovioKit Documentation</title>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin: 2rem; }
+            ul { line-height: 1.8; }
+          </style>
+        </head>
+        <body>
+          <h1>PovioKit Documentation</h1>
+          <ul>
+            <li><a href="./PovioKitCore/documentation/poviokitcore/">PovioKitCore</a></li>
+            <li><a href="./PovioKitUtilities/documentation/poviokitutilities/">PovioKitUtilities</a></li>
+            <li><a href="./PovioKitAsync/documentation/poviokitasync/">PovioKitAsync</a></li>
+            <li><a href="./PovioKitUIKit/documentation/poviokituikit/">PovioKitUIKit</a></li>
+            <li><a href="./PovioKitSwiftUI/documentation/poviokitswiftui/">PovioKitSwiftUI</a></li>
+            <li><a href="./PovioKitAppKit/documentation/poviokitappkit/">PovioKitAppKit</a></li>
+          </ul>
+        </body>
+        </html>
+        EOF
+
+    - name: Upload Docs Artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: .build/DocC/site
+
+  deploy-docs:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: build-docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+    - name: Deploy GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

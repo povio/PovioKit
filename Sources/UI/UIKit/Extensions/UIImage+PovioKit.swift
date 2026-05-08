@@ -7,7 +7,12 @@
 //
 
 #if os(iOS)
-import UIKit
+// UIKit in Swift 6 does not mark `UIImage` as `Sendable`, even though Apple
+// documents the class as immutable and safe to use from any thread. The
+// async helpers below spawn `Task`s that capture `self` specifically to
+// offload CPU-bound image work, so we opt in to `@preconcurrency` here to
+// downgrade those Sendable errors to (already-suppressed) warnings.
+@preconcurrency import UIKit
 import PovioKitCore
 
 public extension UIImage {
@@ -270,7 +275,7 @@ public extension UIImage {
     }.value
   }
   
-  enum ImageFormat {
+  enum ImageFormat: Sendable {
     case jpeg(compressionRatio: CGFloat)
     case png
   }

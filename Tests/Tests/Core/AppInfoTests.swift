@@ -10,15 +10,42 @@ import XCTest
 @testable import PovioKitCore
 
 final class AppInfoTests: XCTestCase {
-  private final class URLOpenSpy {
-    private(set) var openedUrls: [URL] = []
+  private final class URLOpenSpy: @unchecked Sendable {
+    // Access is serialised by `lock` so tests observing from a background
+    // queue remain safe under strict concurrency.
+    private let lock = NSLock()
+    private var _openedUrls: [URL] = []
+    private var _shouldAllowOpening = true
+    
+    var openedUrls: [URL] {
+      lock.lock()
+      defer { lock.unlock() }
+      return _openedUrls
+    }
+    
+    var shouldAllowOpening: Bool {
+      get {
+        lock.lock()
+        defer { lock.unlock() }
+        return _shouldAllowOpening
+      }
+      set {
+        lock.lock()
+        defer { lock.unlock() }
+        _shouldAllowOpening = newValue
+      }
+    }
     
     func canOpen(_ url: URL) -> Bool {
-      true
+      lock.lock()
+      defer { lock.unlock() }
+      return _shouldAllowOpening
     }
     
     func open(_ url: URL) {
-      openedUrls.append(url)
+      lock.lock()
+      defer { lock.unlock() }
+      _openedUrls.append(url)
     }
   }
   
@@ -29,68 +56,58 @@ final class AppInfoTests: XCTestCase {
   }
   
   private func installSpy(_ spy: URLOpenSpy) {
-    AppInfoURLHandlerStore.canOpenUrlHandlerForTesting = spy.canOpen
-    AppInfoURLHandlerStore.openUrlHandlerForTesting = spy.open
+    AppInfoURLHandlerStore.canOpenUrlHandlerForTesting = { url in spy.canOpen(url) }
+    AppInfoURLHandlerStore.openUrlHandlerForTesting = { url in spy.open(url) }
   }
   
   // MARK: - Bundle Properties
   
-  func testBundleIdIsNotEmpty() {
-    let bundleId = AppInfo.bundleId
-    
-    XCTAssertFalse(bundleId.isEmpty, "Bundle ID should not be empty")
+  func testBundleIdIsNilOrNonEmpty() {
+    if let bundleId = AppInfo.bundleId {
+      XCTAssertFalse(bundleId.isEmpty, "Bundle ID should not be empty when present")
+    }
   }
   
-  func testBundleIdFormat() {
-    let bundleId = AppInfo.bundleId
-    
+  func testBundleIdFormatWhenPresent() {
+    guard let bundleId = AppInfo.bundleId else { return }
     // Bundle IDs typically contain at least one period
     XCTAssertTrue(bundleId.contains(".") || bundleId.count > 0, "Bundle ID should be valid format")
   }
   
-  func testNameIsNotEmpty() {
-    let name = AppInfo.name
-    
-    XCTAssertFalse(name.isEmpty, "App name should not be empty")
+  func testNameIsNilOrNonEmpty() {
+    if let name = AppInfo.name {
+      XCTAssertFalse(name.isEmpty, "App name should not be empty when present")
+    }
   }
   
-  func testNameExists() {
-    let name = AppInfo.name
-    
-    XCTAssertGreaterThan(name.count, 0, "App name should have characters")
+  func testBuildIsNilOrNonEmpty() {
+    if let build = AppInfo.build {
+      XCTAssertFalse(build.isEmpty, "Build number should not be empty when present")
+    }
   }
   
-  func testBuildIsNotEmpty() {
-    let build = AppInfo.build
-    
-    XCTAssertFalse(build.isEmpty, "Build number should not be empty")
-  }
-  
-  func testBuildIsNumericOrAlphanumeric() {
-    let build = AppInfo.build
-    
+  func testBuildIsNumericOrAlphanumericWhenPresent() {
+    guard let build = AppInfo.build else { return }
     // Build numbers are typically numeric or alphanumeric
     let isValid = !build.isEmpty && (build.allSatisfy { $0.isNumber || $0.isLetter || $0 == "." })
     XCTAssertTrue(isValid, "Build should be valid format")
   }
   
-  func testVersionIsNotEmpty() {
-    let version = AppInfo.version
-    
-    XCTAssertFalse(version.isEmpty, "Version should not be empty")
+  func testVersionIsNilOrNonEmpty() {
+    if let version = AppInfo.version {
+      XCTAssertFalse(version.isEmpty, "Version should not be empty when present")
+    }
   }
   
-  func testVersionFormat() {
-    let version = AppInfo.version
-    
+  func testVersionFormatWhenPresent() {
+    guard let version = AppInfo.version else { return }
     // Versions typically contain numbers and periods (e.g., "1.0.0")
     let hasNumbers = version.contains(where: { $0.isNumber })
     XCTAssertTrue(hasNumbers, "Version should contain numbers")
   }
   
-  func testVersionIsSemanticVersionFormat() {
-    let version = AppInfo.version
-    
+  func testVersionIsSemanticVersionFormatWhenPresent() {
+    guard let version = AppInfo.version else { return }
     // Should be able to split by periods
     let components = version.split(separator: ".")
     XCTAssertGreaterThanOrEqual(components.count, 1, "Version should have at least one component")
@@ -131,10 +148,8 @@ final class AppInfoTests: XCTestCase {
   func testOpenAppStoreWithValidId() {
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.openAppStore(appId: "123456789"),
-      "Should not crash with valid app ID"
-    )
+    let result = AppInfo.openAppStore(appId: "123456789")
+    XCTAssertTrue(result, "Should report success with valid app ID")
     XCTAssertEqual(spy.openedUrls.count, 1, "Should attempt to open one App Store URL")
     XCTAssertEqual(spy.openedUrls.first?.absoluteString, "itms-apps://apps.apple.com/app/id123456789")
   }
@@ -142,10 +157,8 @@ final class AppInfoTests: XCTestCase {
   func testOpenAppStoreWithEmptyId() {
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.openAppStore(appId: ""),
-      "Should not crash with empty app ID"
-    )
+    let result = AppInfo.openAppStore(appId: "")
+    XCTAssertTrue(result, "Should still return success when URL can be formed")
     XCTAssertEqual(spy.openedUrls.count, 1, "Should still build and open URL for empty app ID")
   }
   
@@ -153,10 +166,8 @@ final class AppInfoTests: XCTestCase {
     let longId = String(repeating: "1", count: 20)
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.openAppStore(appId: longId),
-      "Should handle long app IDs"
-    )
+    let result = AppInfo.openAppStore(appId: longId)
+    XCTAssertTrue(result, "Should handle long app IDs")
     XCTAssertEqual(spy.openedUrls.count, 1, "Should attempt to open URL for long app ID")
   }
   
@@ -167,10 +178,8 @@ final class AppInfoTests: XCTestCase {
     installSpy(spy)
     
     for appId in specialIds {
-      XCTAssertNoThrow(
-        AppInfo.openAppStore(appId: appId),
-        "Should handle special characters in app ID"
-      )
+      let result = AppInfo.openAppStore(appId: appId)
+      XCTAssertTrue(result, "Should handle special characters in app ID")
     }
     XCTAssertEqual(spy.openedUrls.count, specialIds.count, "Should attempt to open URL for each app ID")
   }
@@ -180,10 +189,8 @@ final class AppInfoTests: XCTestCase {
   func testCallWithValidNumber() {
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.call("1234567890"),
-      "Should not crash with valid number"
-    )
+    let result = AppInfo.call("1234567890")
+    XCTAssertTrue(result, "Should report success with valid number")
     XCTAssertEqual(spy.openedUrls.count, 1, "Should attempt one phone call URL")
     XCTAssertEqual(spy.openedUrls.first?.absoluteString, "tel://1234567890")
   }
@@ -191,11 +198,9 @@ final class AppInfoTests: XCTestCase {
   func testCallWithEmptyNumber() {
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.call(""),
-      "Should not crash with empty number"
-    )
-    XCTAssertEqual(spy.openedUrls.count, 1, "Should still build and open tel URL")
+    let result = AppInfo.call("")
+    XCTAssertFalse(result, "Should fail for empty numbers")
+    XCTAssertEqual(spy.openedUrls.count, 0, "Should not attempt to open an invalid tel URL")
   }
   
   func testCallWithInternationalFormat() {
@@ -204,10 +209,8 @@ final class AppInfoTests: XCTestCase {
     installSpy(spy)
     
     for number in numbers {
-      XCTAssertNoThrow(
-        AppInfo.call(number),
-        "Should handle international number formats"
-      )
+      let result = AppInfo.call(number)
+      XCTAssertTrue(result, "Should handle international number formats")
     }
     XCTAssertEqual(spy.openedUrls.count, numbers.count, "Should attempt one URL per phone number")
   }
@@ -218,12 +221,15 @@ final class AppInfoTests: XCTestCase {
     installSpy(spy)
     
     for number in numbers {
-      XCTAssertNoThrow(
-        AppInfo.call(number),
-        "Should handle numbers with special characters"
-      )
+      let result = AppInfo.call(number)
+      XCTAssertTrue(result, "Should handle numbers with special characters")
     }
     XCTAssertEqual(spy.openedUrls.count, numbers.count, "Should attempt one URL per phone number")
+    XCTAssertEqual(
+      spy.openedUrls.map(\.absoluteString),
+      ["tel://1234567890", "tel://1234567890", "tel://1234567890"],
+      "Should sanitize phone numbers to URL-safe values"
+    )
   }
   
   // MARK: - URL Opening
@@ -236,10 +242,8 @@ final class AppInfoTests: XCTestCase {
     
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.openUrl(url),
-      "Should not crash with valid URL"
-    )
+    let result = AppInfo.openUrl(url)
+    XCTAssertTrue(result, "Should report success with valid URL")
     XCTAssertEqual(spy.openedUrls.first, url, "Should forward exact URL to opener")
   }
   
@@ -251,10 +255,8 @@ final class AppInfoTests: XCTestCase {
     
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.openUrl(url, inSafari: true),
-      "Should not crash with inSafari option"
-    )
+    let result = AppInfo.openUrl(url, inSafari: true)
+    XCTAssertTrue(result, "Should report success with inSafari option")
     XCTAssertEqual(spy.openedUrls.count, 1, "Should attempt to open one URL")
   }
   
@@ -266,10 +268,8 @@ final class AppInfoTests: XCTestCase {
     
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.openUrl(url),
-      "Should handle HTTP URLs"
-    )
+    let result = AppInfo.openUrl(url)
+    XCTAssertTrue(result, "Should handle HTTP URLs")
     XCTAssertEqual(spy.openedUrls.first, url, "Should open HTTP URL")
   }
   
@@ -281,10 +281,8 @@ final class AppInfoTests: XCTestCase {
     
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.openUrl(url),
-      "Should handle HTTPS URLs"
-    )
+    let result = AppInfo.openUrl(url)
+    XCTAssertTrue(result, "Should handle HTTPS URLs")
     XCTAssertEqual(spy.openedUrls.first, url, "Should open HTTPS URL")
   }
   
@@ -296,11 +294,24 @@ final class AppInfoTests: XCTestCase {
     
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.openUrl(url),
-      "Should handle custom URL schemes"
-    )
+    let result = AppInfo.openUrl(url)
+    XCTAssertTrue(result, "Should handle custom URL schemes")
     XCTAssertEqual(spy.openedUrls.first, url, "Should open custom scheme URL")
+  }
+  
+  func testOpenUrlReturnsFalseWhenSystemCannotOpen() {
+    guard let url = URL(string: "myapp://deeplink") else {
+      XCTFail("Failed to create custom scheme URL")
+      return
+    }
+    
+    let spy = URLOpenSpy()
+    spy.shouldAllowOpening = false
+    installSpy(spy)
+    
+    let result = AppInfo.openUrl(url)
+    XCTAssertFalse(result, "Should report failure when canOpenURL is false")
+    XCTAssertTrue(spy.openedUrls.isEmpty, "Should not invoke opener when cannot open URL")
   }
   
 #if os(iOS)
@@ -309,20 +320,16 @@ final class AppInfoTests: XCTestCase {
   func testOpenSettings() {
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.openSettings(),
-      "Should not crash when opening settings"
-    )
+    let result = AppInfo.openSettings()
+    XCTAssertTrue(result, "Should report success when opening settings")
     XCTAssertEqual(spy.openedUrls.count, 1, "Should attempt to open settings URL")
   }
   
   func testOpenNotificationSettings() {
     let spy = URLOpenSpy()
     installSpy(spy)
-    XCTAssertNoThrow(
-      AppInfo.openNotificationSettings(),
-      "Should not crash when opening notification settings"
-    )
+    let result = AppInfo.openNotificationSettings()
+    XCTAssertTrue(result, "Should report success when opening notification settings")
     XCTAssertEqual(spy.openedUrls.count, 1, "Should attempt to open notification settings URL")
   }
 #endif
@@ -365,17 +372,15 @@ final class AppInfoTests: XCTestCase {
     installSpy(spy)
     
     for appId in realAppIds {
-      XCTAssertNoThrow(
-        AppInfo.openAppStore(appId: appId),
-        "Should handle real App Store IDs"
-      )
+      let result = AppInfo.openAppStore(appId: appId)
+      XCTAssertTrue(result, "Should handle real App Store IDs")
     }
     XCTAssertEqual(spy.openedUrls.count, realAppIds.count, "Should attempt to open one URL per app ID")
   }
   
   func testVersionStringForDisplay() {
-    let version = AppInfo.version
-    let build = AppInfo.build
+    let version = AppInfo.version ?? "-"
+    let build = AppInfo.build ?? "-"
     let displayString = "Version \(version) (\(build))"
     
     XCTAssertFalse(displayString.isEmpty, "Should be able to create version display string")

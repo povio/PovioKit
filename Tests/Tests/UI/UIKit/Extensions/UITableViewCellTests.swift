@@ -10,6 +10,8 @@
 import XCTest
 import PovioKitCore
 
+// `UITableViewCell.identifier` is main-actor isolated in Swift 6.
+@MainActor
 class TableViewCellIdentifierTests: XCTestCase {
   func test_identifier_returnsCorrectIdentifier() {    
     let SUTs: [(expectedIdentifier: String, cell: UITableViewCell.Type)] = [("IdentifierTest", IdentifierTest.self), ("SomeCustomCell", SomeCustomCell.self)]

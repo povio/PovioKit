@@ -10,7 +10,11 @@ import Foundation
 import PovioKitCore
 import PovioKitUtilities
 
-class MockBundleReader: BundleReadable {
+final class MockBundleReader: BundleReadable, @unchecked Sendable {
+  // `[String: Any]` is inherently non-Sendable, but `MockBundleReader`
+  // holds it in a `let` and never mutates or publishes it after
+  // construction, so `@unchecked Sendable` is sound for this test
+  // helper.
   private let dictionary: [String: Any]
   
   init(dictionary: [String: Any]) {

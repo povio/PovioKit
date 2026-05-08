@@ -23,8 +23,9 @@ import CoreServices
 /// typically achieving 50% smaller file sizes at similar quality levels. This processor
 /// is ideal for iOS and macOS applications where maximum compression efficiency is desired.
 ///
-/// **Note:** HEIC format is supported on iOS 11+ and macOS 10.13+. On older systems,
-/// the processor will fall back to returning the original image.
+/// **Note:** HEIC format is natively supported on all PovioKit-supported platforms
+/// (iOS 17+, macOS 14+). If HEIC encoding is unavailable for any reason, the processor
+/// falls back to returning the original image.
 ///
 /// ## Example
 /// ```swift
@@ -49,8 +50,9 @@ public struct HEICImageProcessor: ImageProcessor {
   ///   - 0.7-0.8: Balanced (recommended)
   ///   - 0.5-0.6: High compression, smaller file size
   public init(compressionQuality: CGFloat = 0.8) {
-    self.compressionQuality = max(0.0, min(1.0, compressionQuality))
-    self.identifier = "com.povio.HEICImageProcessor(\(compressionQuality))"
+    let clampedQuality = max(0.0, min(1.0, compressionQuality))
+    self.compressionQuality = clampedQuality
+    self.identifier = "com.povio.HEICImageProcessor(\(clampedQuality))"
   }
   
   public func process(item: ImageProcessItem, options: KingfisherParsedOptionsInfo) -> KFCrossPlatformImage? {

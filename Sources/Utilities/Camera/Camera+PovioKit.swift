@@ -9,23 +9,23 @@
 import AVFoundation
 
 public extension Camera {
-  enum CameraPosition {
+  enum CameraPosition: Sendable {
     case back
     case front
   }
 
-  enum CameraAuthorizationStatus {
+  enum CameraAuthorizationStatus: Sendable {
     case authorized
     case denied
     case notDetermined
   }
 
-  enum MediaType {
+  enum MediaType: Sendable {
     case video
     case audio
   }
   
-  enum Error: Swift.Error {
+  enum Error: Swift.Error, Sendable {
     case unavailable
     case missingSession
     case missingInput

@@ -21,12 +21,7 @@ public struct SimpleColorPicker: NSViewRepresentable {
   }
   
   public func makeNSView(context: Context) -> NSColorWell {
-    let colorWell: NSColorWell
-    if #available(macOS 13.0, *) {
-      colorWell = NSColorWell(style: .minimal)
-    } else {
-      colorWell = NSColorWell()
-    }
+    let colorWell = NSColorWell(style: .minimal)
     colorWell.color = NSColor(selection)
     
     context.coordinator.startObservingColorChange(of: colorWell)

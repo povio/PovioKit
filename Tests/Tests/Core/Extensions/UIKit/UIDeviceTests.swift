@@ -10,6 +10,8 @@
 import XCTest
 import PovioKitCore
 
+// `UIDevice.current` and its properties are main-actor isolated in Swift 6.
+@MainActor
 class UIDeviceTests: XCTestCase {
   func testAppVariablesNotEmpty() {
     let sut = UIDevice.current

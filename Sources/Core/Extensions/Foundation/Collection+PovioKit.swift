@@ -10,7 +10,6 @@ import Foundation
 
 public extension Collection {
   /// Returns the element at the specified `index` if it is within bounds, otherwise `nil`.
-  /// Returns the element at the specified `index` if it is within bounds, otherwise `nil`.
   ///
   /// This subscript safely accesses an element in the collection at the given index. If the index is out of bounds, it returns `nil` instead of causing a runtime error.
   ///
@@ -67,6 +66,12 @@ public extension Collection {
   /// - Returns: A dictionary where the keys are `Date` objects representing the grouped date components,
   ///           and the values are arrays of elements that correspond to each grouped date.
   ///
+  /// - Note: On the rare occasion that `calendar.date(from:)` cannot
+  ///         reconstruct a normalized date (for example due to a
+  ///         daylight-saving-time gap), the element's raw date is used as the
+  ///         grouping key instead. This is the only case where the returned
+  ///         dictionary can mix normalized and unnormalized keys.
+  ///
   /// ## Example
   /// ```swift
   /// struct Event {
@@ -119,8 +124,7 @@ public extension Collection {
       grouping: self,
       by: {
         let components = calendar.dateComponents(dateComponents, from: extractDate($0))
-        let date = calendar.date(from: components) ?? Date()
-        return date
+        return calendar.date(from: components) ?? extractDate($0)
       }
     )
   }
