@@ -10,15 +10,11 @@ concurrency:
 
 permissions:
   contents: read
-  actions: write
 
 jobs:
   Tests-iOS:
     runs-on: macos-26-xlarge
     steps:
-    - name: Cancel previous jobs
-      uses: styfle/cancel-workflow-action@0.12.1
-
     - name: Checkout Repository
       uses: actions/checkout@v5
 
@@ -57,9 +53,6 @@ jobs:
   Tests-macOS:
     runs-on: macos-26-xlarge
     steps:
-    - name: Cancel previous jobs
-      uses: styfle/cancel-workflow-action@0.12.1
-
     - name: Checkout Repository
       uses: actions/checkout@v5
 
@@ -82,9 +75,6 @@ jobs:
   Build-Minimum-Deployment:
     runs-on: macos-26-xlarge
     steps:
-    - name: Cancel previous jobs
-      uses: styfle/cancel-workflow-action@0.12.1
-
     - name: Checkout Repository
       uses: actions/checkout@v5
 

@@ -74,6 +74,11 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
-#
-
+# macOS
 .DS_Store
+
+# Xcode test results / coverage
+*.xcresult
+
+# Xcode user state
+*.xcuserstate
