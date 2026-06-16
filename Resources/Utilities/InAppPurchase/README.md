@@ -150,14 +150,12 @@ Task {
 
 ### Validate receipt
 ``` swift
-Task {
-  let result = await inAppPurchaseService.validateReceipt()
-  switch result {
-  case .success(let receipt):
-    Logger.debug("Receipt valid", params: ["receipt": receipt])
-  case .failure(let failure):
-    Logger.error("Receipt validation failed with error", params: ["error": error.localizedDescription])
-  }
+let result = inAppPurchaseService.validateReceipt()
+switch result {
+case .success(let receipt):
+  Logger.debug("Receipt valid", params: ["receipt": receipt])
+case .failure(let failure):
+  Logger.error("Receipt validation failed with error", params: ["error": failure.localizedDescription])
 }
 ```
 

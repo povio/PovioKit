@@ -38,14 +38,14 @@ func prepareCamera() {
 
 We can also switch from front facing to back camera:
 
-`func changeCamera(position: CameraPosition)`
+`func setCameraPosition(_ position: CameraPosition) throws`
 
 
 #### Photo Camera delegate
 
-`func photoCamera(photoCamera: PhotoCamera, didTakePhoto image: UIImage)`
+`func photoCamera(_ photoCamera: PhotoCamera, didTakePhoto image: UIImage)`
 
-`func photoCamera(photoCamera: PhotoCamera, didTriggerError error: Camera.Error)`
+`func photoCamera(_ photoCamera: PhotoCamera, didTriggerError error: Camera.Error)`
 
 ### QRCodeScanner Example:
 ```swift
