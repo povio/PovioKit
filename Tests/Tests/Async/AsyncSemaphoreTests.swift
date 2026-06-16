@@ -6,7 +6,7 @@
 //
 
 import XCTest
-import PovioKitAsync
+@testable import PovioKitAsync
 
 final class AsyncSemaphoreTests: XCTestCase {
   private actor ConcurrencyProbe {
@@ -26,22 +26,34 @@ final class AsyncSemaphoreTests: XCTestCase {
   func testSemaphoreLimitsConcurrency() async throws {
     let semaphore = AsyncSemaphore(value: 2)
     let probe = ConcurrencyProbe()
+    let gate = Latch()
 
-    try await withThrowingTaskGroup(of: Void.self) { group in
-      for _ in 0 ..< 10 {
-        group.addTask {
-          try await semaphore.withPermit {
-            await probe.begin()
-            try await Task.sleep(for: .milliseconds(20))
-            await probe.end()
+    // Each task holds its permit (blocked on the gate) until we have
+    // observed the permitted number running concurrently — no fixed sleep.
+    let runner = Task {
+      try await withThrowingTaskGroup(of: Void.self) { group in
+        for _ in 0 ..< 10 {
+          group.addTask {
+            try await semaphore.withPermit {
+              await probe.begin()
+              await gate.wait()
+              await probe.end()
+            }
           }
         }
+        try await group.waitForAll()
       }
-      try await group.waitForAll()
     }
 
-    let maxRunning = await probe.maxRunning
-    XCTAssertLessThanOrEqual(maxRunning, 2)
+    // Exactly two permits, so concurrency saturates at two and stays there.
+    await waitUntil { await probe.running == 2 }
+    let observedMax = await probe.maxRunning
+    XCTAssertEqual(observedMax, 2)
+
+    await gate.open()
+    try await runner.value
+    let finalMax = await probe.maxRunning
+    XCTAssertEqual(finalMax, 2)
   }
 
   // MARK: - Cancellation
@@ -65,8 +77,8 @@ final class AsyncSemaphoreTests: XCTestCase {
       }
     }
 
-    // Give the task a moment to enter the waiter queue.
-    try await Task.sleep(for: .milliseconds(20))
+    // Wait until the task is genuinely enqueued as a waiter.
+    await waitUntil { semaphore.waiterCount == 1 }
     task.cancel()
 
     let result = await task.value
@@ -128,7 +140,7 @@ final class AsyncSemaphoreTests: XCTestCase {
       }
     }
 
-    try await Task.sleep(for: .milliseconds(20))
+    await waitUntil { semaphore.waiterCount == 1 }
     task.cancel()
 
     let result = await task.value
@@ -160,9 +172,8 @@ final class AsyncSemaphoreTests: XCTestCase {
     }
 
     // Confirm the task is genuinely waiting — not merely racing the
-    // expectation. A short sleep gives the runtime time to run the
-    // body up to the suspension point.
-    try await Task.sleep(for: .milliseconds(40))
+    // expectation.
+    await waitUntil { semaphore.waiterCount == 1 }
     XCTAssertFalse(task.isCancelled)
 
     semaphore.release()
@@ -179,7 +190,7 @@ final class AsyncSemaphoreTests: XCTestCase {
       acquired.fulfill()
     }
 
-    try await Task.sleep(for: .milliseconds(20))
+    await waitUntil { semaphore.waiterCount == 1 }
     XCTAssertFalse(task.isCancelled)
     semaphore.release()
 
@@ -209,8 +220,9 @@ final class AsyncSemaphoreTests: XCTestCase {
           semaphore.release()
         }
       )
-      // Tiny gap so the waiter queue order is deterministic.
-      try await Task.sleep(for: .milliseconds(5))
+      // Ensure this waiter is enqueued before submitting the next, so the
+      // queue order — and therefore FIFO service order — is deterministic.
+      await waitUntil { semaphore.waiterCount == index + 1 }
     }
 
     semaphore.release()
