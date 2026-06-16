@@ -7,6 +7,7 @@
 //
 
 import AVFoundation
+import Foundation
 
 public class Camera: NSObject, @unchecked Sendable {
   // MARK: - Threading model
@@ -17,17 +18,16 @@ public class Camera: NSObject, @unchecked Sendable {
   // subclasses) — must happen on `sessionQueue`. Use the `onSessionQueue`
   // helper below so callers don't need to open-code the re-entrancy check.
   //
-  // `cameraPosition` and `deviceType` are read inside `configure()` (which
-  // now runs on `sessionQueue`), but their setters are still plain stored
-  // properties with no locking. Consumers are expected to mutate them from
-  // a single thread (typically the main thread via `setCameraPosition(_:)`
-  // or `setDeviceType(_:)` on a subclass); mutating them concurrently from
-  // multiple threads is undefined.
+  // `cameraPosition` and `deviceType` feed the `device` computed property,
+  // which is read both on `sessionQueue` (inside `configure()`) and off it
+  // (e.g. `isTorchAvailable` from the main thread). They are therefore
+  // guarded by `stateLock`, so reads and writes are atomic regardless of
+  // the calling thread.
   //
   // Marked `@unchecked Sendable` to allow the camera hierarchy to
   // participate in Swift Concurrency. The `@unchecked` is load-bearing
-  // because `previewLayer`, `cameraPosition`, and `deviceType` are stored
-  // properties without compile-time Sendable guarantees.
+  // because `previewLayer` (an `AVCaptureVideoPreviewLayer`) is a stored
+  // property without compile-time Sendable guarantees.
   static let sessionQueueKey = DispatchSpecificKey<Void>()
   var device: AVCaptureDevice? {
     switch cameraPosition {
@@ -51,9 +51,22 @@ public class Camera: NSObject, @unchecked Sendable {
     return previewLayer
   }()
   public let cameraService: CameraService
-  public var deviceType: AVCaptureDevice.DeviceType = .builtInWideAngleCamera
-  var cameraPosition: CameraPosition = .back
-  
+  /// The currently attached device input, swapped out on each reconfigure.
+  var deviceInput: AVCaptureDeviceInput?
+
+  private let stateLock = NSLock()
+  private var _deviceType: AVCaptureDevice.DeviceType = .builtInWideAngleCamera
+  private var _cameraPosition: CameraPosition = .back
+
+  public var deviceType: AVCaptureDevice.DeviceType {
+    get { stateLock.withLock { _deviceType } }
+    set { stateLock.withLock { _deviceType = newValue } }
+  }
+  var cameraPosition: CameraPosition {
+    get { stateLock.withLock { _cameraPosition } }
+    set { stateLock.withLock { _cameraPosition = newValue } }
+  }
+
   init(with cameraService: CameraService = CameraService()) {
     self.cameraService = cameraService
     super.init()
@@ -74,6 +87,49 @@ public class Camera: NSObject, @unchecked Sendable {
       return try work()
     } else {
       return try sessionQueue.sync(execute: work)
+    }
+  }
+
+  /// Reconfigures the capture session on `sessionQueue`: swaps in a fresh
+  /// `AVCaptureDeviceInput` for the current `device` and lets the caller
+  /// attach its output(s). Serialized with `startSession()` / `stopSession()`
+  /// and with concurrent reconfigures triggered by `setCameraPosition(_:)`
+  /// or `setDeviceType(_:)`.
+  ///
+  /// - Parameters:
+  ///   - preset: Optional session preset applied within the configuration block.
+  ///   - prepareDevice: Hook to configure the device before the input is
+  ///     attached (e.g. focus mode). Runs before `beginConfiguration()`.
+  ///   - configureOutputs: Attaches output(s) to the session. Runs inside the
+  ///     configuration block, after the input has been added.
+  func reconfigureSession(
+    preset: AVCaptureSession.Preset? = nil,
+    prepareDevice: (AVCaptureDevice) throws -> Void = { _ in },
+    configureOutputs: (AVCaptureDevice) throws -> Void
+  ) throws {
+    try onSessionQueue {
+      guard let device else { throw Camera.Error.unavailable }
+      try prepareDevice(device)
+
+      session.beginConfiguration()
+      defer { session.commitConfiguration() }
+
+      if let preset {
+        session.sessionPreset = preset
+      }
+
+      if let previousDeviceInput = deviceInput {
+        session.removeInput(previousDeviceInput)
+      }
+
+      guard let deviceInput = try? AVCaptureDeviceInput(device: device),
+            session.canAddInput(deviceInput) else {
+        throw Camera.Error.missingInput
+      }
+      self.deviceInput = deviceInput
+      session.addInput(deviceInput)
+
+      try configureOutputs(device)
     }
   }
 }

@@ -91,10 +91,16 @@ public class TextField: UIView {
     }
   }
   
-  public var enabled: Bool = true {
+  public var isEnabled: Bool = true {
     didSet { isEnabledStateChanged() }
   }
-  
+
+  @available(*, deprecated, renamed: "isEnabled")
+  public var enabled: Bool {
+    get { isEnabled }
+    set { isEnabled = newValue }
+  }
+
   public var attributedValue: NSAttributedString? {
     didSet { valueTextField.attributedText = attributedValue }
   }
@@ -264,8 +270,8 @@ private extension TextField {
   }
   
   func isEnabledStateChanged() {
-    valueTextField.isEnabled = enabled
-    valueContainerView.backgroundColor = enabled
+    valueTextField.isEnabled = isEnabled
+    valueContainerView.backgroundColor = isEnabled
       ? textFieldBackgroundColor
       : textFieldBackgroundColor.withAlphaComponent(0.3)
   }

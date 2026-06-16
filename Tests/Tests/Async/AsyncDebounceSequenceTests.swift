@@ -145,8 +145,13 @@ final class AsyncDebounceSequenceTests: XCTestCase {
 
   func testCallerCancellationPropagatesAsCancellationError() async throws {
     let sequence = TestAsyncSequence(values: [1, 2, 3], delay: .milliseconds(0))
+    // Drive debouncing with a `TestClock` so we can detect — deterministically,
+    // without a fixed sleep — when the iterator is actually suspended in its
+    // debounce delay. The clock is never advanced, so the iterator stays
+    // suspended until we cancel it.
+    let clock = TestClock()
     let debounced = sequence.debounce(
-      clock: .suspending,
+      clock: clock,
       delayBetweenTasks: .milliseconds(500)
     )
     let iterator = debounced.makeAsyncIterator()
@@ -160,8 +165,8 @@ final class AsyncDebounceSequenceTests: XCTestCase {
       }
     }
 
-    // Give the iterator a moment to begin sleeping before cancelling.
-    try await Task.sleep(for: .milliseconds(20))
+    // Wait until the iterator is genuinely sleeping on the clock, then cancel.
+    await clock.waitForSleepers(count: 1)
     task.cancel()
 
     switch await task.value {

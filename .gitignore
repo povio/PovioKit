@@ -35,7 +35,6 @@ playground.xcworkspace
 # Add this line if you want to avoid checking in source code from Swift Package Manager dependencies.
 # Packages/
 # Package.pins
-# Package.resolved
 # *.xcodeproj
 #
 # Xcode automatically generates this directory with a .xcworkspacedata file and xcuserdata
@@ -43,6 +42,9 @@ playground.xcworkspace
 # .swiftpm
 
 .build/
+
+# Root Package.resolved is not committed for libraries (consumers ignore it).
+/Package.resolved
 
 # CocoaPods
 #
@@ -74,6 +76,11 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
-#
-
+# macOS
 .DS_Store
+
+# Xcode test results / coverage
+*.xcresult
+
+# Xcode user state
+*.xcuserstate

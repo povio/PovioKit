@@ -30,8 +30,8 @@ class ViewController: UIViewController {
     
     /// We need to tell collection view about the estimated cell size
     (collectionView.collectionViewLayout as? UICollectionViewFlowLayout).map {
-      $0.estimatedItemSize = CGSize(width: collectionView.maxContentSize.width), height: 1) // for vertical layout
-      // $0.estimatedItemSize = CGSize(width: 1, height: collectionView.maxContentSize.height)) // for horizontal layout
+      $0.estimatedItemSize = CGSize(width: collectionView.maxContentSize.width, height: 1) // for vertical layout
+      // $0.estimatedItemSize = CGSize(width: 1, height: collectionView.maxContentSize.height) // for horizontal layout
     }
   }
 }

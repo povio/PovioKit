@@ -56,9 +56,15 @@ public struct LinearColorInterpolator: ColorInterpolator {
   
   public func interpolate(_ startColor: [CGFloat], with color: [CGFloat], percentage: CGFloat) -> UIColor {
     let percentage = max(min(1, percentage), 0)
-    return UIColor(red: startColor[0] * (1 - percentage) + color[0] * percentage,
-                   green: startColor[1] * (1 - percentage) + color[1] * percentage,
-                   blue: startColor[2] * (1 - percentage) + color[2] * percentage,
+    // Read defensively: this overload is public, so a caller may pass arrays
+    // with fewer than three components. Treat any missing channel as 0
+    // instead of trapping on an out-of-bounds index.
+    func channel(_ components: [CGFloat], _ index: Int) -> CGFloat {
+      index < components.count ? components[index] : 0
+    }
+    return UIColor(red: channel(startColor, 0) * (1 - percentage) + channel(color, 0) * percentage,
+                   green: channel(startColor, 1) * (1 - percentage) + channel(color, 1) * percentage,
+                   blue: channel(startColor, 2) * (1 - percentage) + channel(color, 2) * percentage,
                    alpha: 1)
   }
 }

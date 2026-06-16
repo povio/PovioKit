@@ -53,8 +53,16 @@ final class TestClock: Clock, @unchecked Sendable {
   private let lock = NSLock()
   private var currentOffset: Duration = .zero
   private var sleepers: [Sleeper] = []
+  private var recordedDelays: [Duration] = []
+  private var nextSleeperID: UInt64 = 0
+
+  /// The delay (relative to the virtual clock at the moment of the call)
+  /// requested by every `sleep(until:)`, in call order. Lets tests assert
+  /// the exact back-off schedule without measuring wall-clock time.
+  var requestedSleepDelays: [Duration] { lock.withLock { recordedDelays } }
 
   private struct Sleeper {
+    let id: UInt64
     let deadline: Instant
     let continuation: CheckedContinuation<Void, Error>
   }
@@ -64,17 +72,33 @@ final class TestClock: Clock, @unchecked Sendable {
 
   func sleep(until deadline: Instant, tolerance: Duration? = nil) async throws {
     try Task.checkCancellation()
-    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-      let resumeImmediately = lock.withLock { () -> Bool in
-        if currentOffset >= deadline.offset {
-          return true
+    let id: UInt64 = lock.withLock {
+      nextSleeperID &+= 1
+      return nextSleeperID
+    }
+
+    try await withTaskCancellationHandler {
+      try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+        let resumeImmediately = lock.withLock { () -> Bool in
+          recordedDelays.append(deadline.offset - currentOffset)
+          if currentOffset >= deadline.offset {
+            return true
+          }
+          sleepers.append(.init(id: id, deadline: deadline, continuation: continuation))
+          return false
         }
-        sleepers.append(.init(deadline: deadline, continuation: continuation))
-        return false
+        if resumeImmediately {
+          continuation.resume()
+        }
       }
-      if resumeImmediately {
-        continuation.resume()
+    } onCancel: {
+      let pending = lock.withLock { () -> CheckedContinuation<Void, Error>? in
+        guard let index = sleepers.firstIndex(where: { $0.id == id }) else { return nil }
+        let cont = sleepers[index].continuation
+        sleepers.remove(at: index)
+        return cont
       }
+      pending?.resume(throwing: CancellationError())
     }
   }
 

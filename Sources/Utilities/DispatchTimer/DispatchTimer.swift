@@ -46,10 +46,8 @@ public extension DispatchTimer {
       completion?()
     }
     
-    lock.lock()
-    timer = newTimer
-    lock.unlock()
-    
+    lock.withLock { timer = newTimer }
+
     newTimer.activate()
   }
   
@@ -70,17 +68,16 @@ public extension DispatchTimer {
   
   /// Stops dispatch scheduler.
   func stop() {
-    lock.lock()
-    let current = timer
-    timer = nil
-    lock.unlock()
+    let current = lock.withLock {
+      let current = timer
+      timer = nil
+      return current
+    }
     current?.cancel()
   }
   
   /// Flag to determine when timer is running.
   var isActive: Bool {
-    lock.lock()
-    defer { lock.unlock() }
-    return timer.map { !$0.isCancelled } ?? false
+    lock.withLock { timer.map { !$0.isCancelled } ?? false }
   }
 }

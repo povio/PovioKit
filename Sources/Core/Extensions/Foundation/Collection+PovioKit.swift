@@ -28,32 +28,6 @@ public extension Collection {
 }
 
 public extension Collection {
-  /// Returns the count of elements in the collection that satisfy the given predicate.
-  /// Check for [Reference](https://forums.swift.org/t/refresh-review-se-0220-count-where/66235/4).
-  ///
-  /// This method applies the provided `predicate` closure to each element in the collection and counts how many elements satisfy the condition.
-  ///
-  /// - Parameter predicate: A closure that takes an element of the collection and returns a boolean value indicating whether the element satisfies the condition.
-  /// - Returns: The count of elements that satisfy the predicate.
-  /// - Throws: This method may throw an error if the `predicate` closure throws an error.
-  ///
-  /// ## Example
-  /// ```swift
-  /// let numbers = [1, 2, 3, 4, 5]
-  /// let countEven = numbers.count { $0 % 2 == 0 } // counts how many numbers are even
-  /// Logger.debug(countEven) // output: 2 (since 2 and 4 are even)
-  /// ```
-  @inlinable
-  func count(where predicate: (Element) throws -> Bool) rethrows -> Int {
-    try reduce(0) { n, element in
-      if try predicate(element) { 
-        n + 1 
-      } else { 
-        n 
-      }
-    }
-  }
-  
   /// Groups the elements of the collection based on extracted date components and returns a dictionary where keys are dates and values are arrays of elements that correspond to those dates.
   ///
   /// This method extracts the date components from each element (using the `extractDate` closure), then groups the elements based on those components.

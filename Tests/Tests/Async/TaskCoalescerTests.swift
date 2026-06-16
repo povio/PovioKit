@@ -6,7 +6,7 @@
 //
 
 import XCTest
-import PovioKitAsync
+@testable import PovioKitAsync
 
 final class TaskCoalescerTests: XCTestCase {
   private actor Counter {
@@ -21,25 +21,39 @@ final class TaskCoalescerTests: XCTestCase {
   func testCoalescerRunsOperationOnlyOncePerKey() async throws {
     let coalescer = TaskCoalescer<String, Int>()
     let counter = Counter()
+    let gate = Latch()
 
-    let results = try await withThrowingTaskGroup(of: Int.self) { group in
-      for _ in 0 ..< 8 {
-        group.addTask {
-          try await coalescer.value(for: "shared-key") {
-            _ = await counter.increment()
-            try await Task.sleep(for: .milliseconds(30))
-            return 7
+    // The single operation is held in-flight (blocked on the gate) until we
+    // have deterministically confirmed all other callers have joined it.
+    let runner = Task {
+      try await withThrowingTaskGroup(of: Int.self) { group in
+        for _ in 0 ..< 8 {
+          group.addTask {
+            try await coalescer.value(for: "shared-key") {
+              _ = await counter.increment()
+              await gate.wait()
+              return 7
+            }
           }
         }
-      }
 
-      var values: [Int] = []
-      for try await value in group {
-        values.append(value)
+        var values: [Int] = []
+        for try await value in group {
+          values.append(value)
+        }
+        return values
       }
-      return values
     }
 
+    // One operation running, the other seven coalesced onto it.
+    await waitUntil {
+      let inFlight = await coalescer.inFlightCount
+      let awaiters = await coalescer.awaiterCount
+      return inFlight == 1 && awaiters == 7
+    }
+    await gate.open()
+
+    let results = try await runner.value
     XCTAssertEqual(results, Array(repeating: 7, count: 8))
     let invocationCount = await counter.count
     XCTAssertEqual(invocationCount, 1)
@@ -62,8 +76,8 @@ final class TaskCoalescerTests: XCTestCase {
       }
     }
 
-    // Give the coalescer time to register the in-flight task.
-    try await Task.sleep(for: .milliseconds(20))
+    // Wait until the coalescer has registered the in-flight task.
+    await waitUntil { await coalescer.inFlightCount == 1 }
     await coalescer.cancelValue(for: "key")
 
     let firstResult = await firstCall.value
@@ -102,7 +116,7 @@ final class TaskCoalescerTests: XCTestCase {
     let b = launch("b")
     let c = launch("c")
 
-    try await Task.sleep(for: .milliseconds(20))
+    await waitUntil { await coalescer.inFlightCount == 3 }
     await coalescer.cancelAll()
 
     for task in [a, b, c] {

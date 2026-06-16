@@ -26,13 +26,18 @@ public extension UICollectionView {
     footerViews.forEach { registerSupplementaryView($0, kind: UICollectionView.elementKindSectionFooter) }
   }
   
-  func dequeuReusableCell<T: UICollectionViewCell>(at indexPath: IndexPath) -> T {
+  func dequeueReusableCell<T: UICollectionViewCell>(at indexPath: IndexPath) -> T {
     guard let cell = dequeueReusableCell(withReuseIdentifier: T.identifier, for: indexPath) as? T else {
       fatalError("Could not dequeue cell with identifier: \(T.identifier)")
     }
     return cell
   }
-  
+
+  @available(*, deprecated, renamed: "dequeueReusableCell(at:)")
+  func dequeuReusableCell<T: UICollectionViewCell>(at indexPath: IndexPath) -> T {
+    dequeueReusableCell(at: indexPath)
+  }
+
   func dequeueReusableCell<T: UICollectionViewCell>(_ cell: T.Type, at indexPath: IndexPath) -> T {
     guard let cell = dequeueReusableCell(withReuseIdentifier: T.identifier, for: indexPath) as? T else {
       fatalError("Could not dequeue cell with identifier: \(T.identifier)")

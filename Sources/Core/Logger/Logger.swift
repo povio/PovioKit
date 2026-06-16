@@ -123,11 +123,3 @@ private extension Logger {
     }
   }
 }
-
-private extension NSLock {
-  func withLock<R>(_ operation: () throws -> R) rethrows -> R {
-    lock()
-    defer { unlock() }
-    return try operation()
-  }
-}

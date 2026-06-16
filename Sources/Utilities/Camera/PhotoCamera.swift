@@ -23,8 +23,7 @@ public protocol PhotoCameraDelegate: AnyObject {
 public class PhotoCamera: Camera, @unchecked Sendable {
   public weak var delegate: PhotoCameraDelegate?
   private let photoOutput = AVCapturePhotoOutput()
-  private var deviceInput: AVCaptureDeviceInput?
-  
+
   public init(delegate: PhotoCameraDelegate? = nil) {
     super.init()
     self.delegate = delegate
@@ -150,30 +149,10 @@ private extension PhotoCamera {
     }
   }
   
-  /// Reconfigures the capture session. Runs on `sessionQueue` so topology
-  /// mutation is serialized with `startSession()` / `stopSession()` and
-  /// with concurrent reconfigures triggered by `setCameraPosition(_:)`
-  /// or `setDeviceType(_:)`.
+  /// Reconfigures the capture session, attaching the photo output. See
+  /// ``Camera/reconfigureSession(preset:prepareDevice:configureOutputs:)``.
   func configure() throws {
-    try onSessionQueue {
-      guard let device = device else { throw Camera.Error.unavailable }
-
-      session.beginConfiguration()
-      defer { session.commitConfiguration() }
-
-      session.sessionPreset = .photo
-
-      if let previousDeviceInput = self.deviceInput {
-        session.removeInput(previousDeviceInput)
-      }
-
-      guard let deviceInput = try? AVCaptureDeviceInput(device: device), session.canAddInput(deviceInput) else {
-        throw Camera.Error.missingInput
-      }
-
-      self.deviceInput = deviceInput
-      session.addInput(deviceInput)
-
+    try reconfigureSession(preset: .photo) { _ in
       if !session.outputs.contains(photoOutput) {
         guard session.canAddOutput(photoOutput) else {
           throw Camera.Error.missingOutput

@@ -189,32 +189,49 @@ final class AsyncUtilitiesTests: XCTestCase {
   /// not keep doubling indefinitely on long-running flaky operations.
   func testRetryBackoffIsCappedAtMaxDelay() async throws {
     let attempts = AttemptCounter()
-    let clock = SuspendingClock()
-    let start = clock.now
+    let clock = TestClock()
 
-    do {
-      _ = try await retry(
-        policy: .init(
-          maxAttempts: 4,
-          initialDelay: .milliseconds(20),
-          backoffFactor: 10,
-          maxDelay: .milliseconds(30)
-        )
-      ) {
-        _ = await attempts.increment()
-        throw TestError.failed
+    let task = Task<Result<Int, Error>, Never> {
+      do {
+        let value: Int = try await retry(
+          policy: .init(
+            maxAttempts: 4,
+            initialDelay: .milliseconds(20),
+            backoffFactor: 10,
+            maxDelay: .milliseconds(30)
+          ),
+          clock: clock
+        ) {
+          _ = await attempts.increment()
+          throw TestError.failed
+        }
+        return .success(value)
+      } catch {
+        return .failure(error)
       }
-      XCTFail("Expected retry to throw after exhausting attempts")
-    } catch {
+    }
+
+    // 4 attempts => 3 back-off sleeps. Drive the virtual clock through each
+    // one deterministically; no wall-clock time elapses.
+    for _ in 0..<3 {
+      await clock.waitForSleepers(count: 1)
+      await clock.run()
+    }
+
+    switch await task.value {
+    case .success(let value):
+      XCTFail("Expected retry to throw after exhausting attempts, got \(value)")
+    case .failure(let error):
       XCTAssertEqual(error as? TestError, .failed)
     }
 
     // Without the cap the delays would be 20ms, 200ms, 2_000ms.
-    // With `maxDelay: 30ms` they collapse to 20ms + 30ms + 30ms = 80ms,
-    // so a budget of 600ms is comfortably above the capped total but
-    // well below the uncapped one.
-    let elapsed = clock.now - start
-    XCTAssertLessThan(elapsed, .milliseconds(600), "delays did not respect maxDelay cap")
+    // With `maxDelay: 30ms` they collapse to exactly 20ms, 30ms, 30ms.
+    XCTAssertEqual(
+      clock.requestedSleepDelays,
+      [.milliseconds(20), .milliseconds(30), .milliseconds(30)],
+      "delays did not respect maxDelay cap"
+    )
     let count = await attempts.value
     XCTAssertEqual(count, 4)
   }

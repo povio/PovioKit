@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
   push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
 
 concurrency:
@@ -93,7 +93,7 @@ jobs:
         path: .build/DocC/site
 
   deploy-docs:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     needs: build-docs
     runs-on: ubuntu-latest
     environment:

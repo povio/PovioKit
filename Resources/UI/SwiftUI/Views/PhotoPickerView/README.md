@@ -4,7 +4,7 @@ A SwiftUI wrapper around `UIImagePickerController` that lets you pick an
 image from the photo library or capture one with the camera. iOS only.
 
 `PhotoPickerView` is almost always used through the companion
-[`photoPicker`](../../View%20Modifiers/PhotoPickerModifier.swift)
+[`photoPicker`](/Sources/UI/SwiftUI/View%20Modifiers/PhotoPickerModifier.swift)
 view modifier, which presents a confirmation dialog letting the user
 pick a source and then shows the appropriate picker. You can also use
 `PhotoPickerView` directly if you don't need the confirmation dialog.

@@ -37,7 +37,7 @@ let requiredRule = RequiredRule()
 let validatableTextField = TextField()
 ...
 
-validatableTextField.set(rule)
+validatableTextField.setRule(requiredRule)
 ```
 
 To check if textField is valid
