@@ -62,6 +62,14 @@ public final class AsyncSemaphore: @unchecked Sendable {
     self.permits = max(0, value)
   }
 
+  /// Number of tasks currently suspended waiting for a permit.
+  ///
+  /// Internal test-only introspection — lets tests synchronise on a waiter
+  /// actually entering the queue instead of guessing with a fixed delay.
+  var waiterCount: Int {
+    lock.withLock { waiters.count + legacyWaiters.count }
+  }
+
   /// Acquires a permit, suspending until one is available.
   ///
   /// If the surrounding task is cancelled while suspended, the call
@@ -179,13 +187,5 @@ public final class AsyncSemaphore: @unchecked Sendable {
       release()
       throw error
     }
-  }
-}
-
-private extension NSLock {
-  func withLock<R>(_ operation: () throws -> R) rethrows -> R {
-    lock()
-    defer { unlock() }
-    return try operation()
   }
 }

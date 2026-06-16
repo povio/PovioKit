@@ -16,8 +16,7 @@ public protocol QRCodeScannerDelegate: AnyObject {
 public class QRCodeScanner: Camera, @unchecked Sendable {
   public weak var delegate: QRCodeScannerDelegate?
   private let metadataOutput = AVCaptureMetadataOutput()
-  private var deviceInput: AVCaptureDeviceInput?
-  
+
   public init(delegate: QRCodeScannerDelegate? = nil) {
     super.init()
     self.delegate = delegate
@@ -52,43 +51,31 @@ extension QRCodeScanner: AVCaptureMetadataOutputObjectsDelegate {
 
 // MARK: - Private Methods
 private extension QRCodeScanner {
-  /// Reconfigures the capture session. Runs on `sessionQueue` so topology
-  /// mutation is serialized with `startSession()` / `stopSession()`.
+  /// Reconfigures the capture session, attaching the metadata output. See
+  /// ``Camera/reconfigureSession(preset:prepareDevice:configureOutputs:)``.
   func configure() throws {
-    try onSessionQueue {
-      guard let device = device else { throw Camera.Error.unavailable }
-
-      if device.isFocusModeSupported(.continuousAutoFocus) {
-        try device.lockForConfiguration()
-        defer { device.unlockForConfiguration() }
-        device.focusMode = .continuousAutoFocus
-      }
-
-      session.beginConfiguration()
-      defer { session.commitConfiguration() }
-
-      if let previousDeviceInput = self.deviceInput {
-        session.removeInput(previousDeviceInput)
-      }
-
-      guard let deviceInput = try? AVCaptureDeviceInput(device: device), session.canAddInput(deviceInput) else {
-        throw Camera.Error.missingInput
-      }
-      self.deviceInput = deviceInput
-      session.addInput(deviceInput)
-
-      if !session.outputs.contains(metadataOutput) {
-        guard session.canAddOutput(metadataOutput) else {
-          throw Camera.Error.missingOutput
+    try reconfigureSession(
+      prepareDevice: { device in
+        if device.isFocusModeSupported(.continuousAutoFocus) {
+          try device.lockForConfiguration()
+          defer { device.unlockForConfiguration() }
+          device.focusMode = .continuousAutoFocus
         }
-        session.addOutput(metadataOutput)
-        metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
-      }
+      },
+      configureOutputs: { _ in
+        if !session.outputs.contains(metadataOutput) {
+          guard session.canAddOutput(metadataOutput) else {
+            throw Camera.Error.missingOutput
+          }
+          session.addOutput(metadataOutput)
+          metadataOutput.setMetadataObjectsDelegate(self, queue: .main)
+        }
 
-      guard metadataOutput.availableMetadataObjectTypes.contains(.qr) else {
-        throw Camera.Error.missingMetadata
+        guard metadataOutput.availableMetadataObjectTypes.contains(.qr) else {
+          throw Camera.Error.missingMetadata
+        }
+        metadataOutput.metadataObjectTypes = [.qr]
       }
-      metadataOutput.metadataObjectTypes = [.qr]
-    }
+    )
   }
 }
