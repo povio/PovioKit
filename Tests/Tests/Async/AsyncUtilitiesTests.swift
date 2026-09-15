@@ -16,6 +16,14 @@ private enum RaceTestError: Error, Equatable {
   throw RaceTestError.failed
 }
 
+/// How long an arm that is meant to *lose* a race sleeps for.
+///
+/// Long enough that only `race` cancelling it can end it, so the loser loses by
+/// construction rather than by clock. A margin measured in milliseconds inverts
+/// whenever the parallel test runner delays the winner's first resumption, which
+/// is exactly how these tests failed on CI.
+private let losesTheRace: Duration = .seconds(5)
+
 final class AsyncUtilitiesTests: XCTestCase {
   private actor AttemptCounter {
     private(set) var value: Int = 0
@@ -147,7 +155,7 @@ final class AsyncUtilitiesTests: XCTestCase {
   func testRaceReturnsFastestResult() async throws {
     let value = try await race(
       {
-        try await Task.sleep(for: .milliseconds(80))
+        try await Task.sleep(for: losesTheRace)
         return 1
       },
       {
@@ -164,7 +172,7 @@ final class AsyncUtilitiesTests: XCTestCase {
       _ = try await race(
         alwaysFailingOperation,
         {
-          try await Task.sleep(for: .milliseconds(40))
+          try await Task.sleep(for: losesTheRace)
           return 42
         }
       )
@@ -308,7 +316,7 @@ final class AsyncUtilitiesTests: XCTestCase {
     do {
       let _: Int = try await race(
         {
-          try await Task.sleep(for: .milliseconds(40))
+          try await Task.sleep(for: losesTheRace)
           throw BoomError.slow
         },
         {
