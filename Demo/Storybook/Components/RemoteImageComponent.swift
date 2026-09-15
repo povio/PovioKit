@@ -12,9 +12,12 @@ import PovioKitSwiftUI
 import SwiftUI
 
 struct RemoteImageComponent: View {
-  // Using a stable, high-availability test service. Seeded paths keep the three
-  // variants rendering the *same* picture, so the processor effect is obvious.
+  // Using a stable, high-availability test service. Seeded paths keep every
+  // variant rendering the *same* picture, so the processor effect is obvious.
   private let imageURL = URL(string: "https://picsum.photos/seed/poviokit/800/800")
+  /// The same picture behind a URL that changes on every launch, standing in for a
+  /// signed link. Keyed by hand, so it is fetched once and read from the cache after.
+  private let signedURL = URL(string: "https://picsum.photos/seed/poviokit/800/800?token=\(UUID().uuidString)")
   
   var body: some View {
     ScrollView {
@@ -31,6 +34,13 @@ struct RemoteImageComponent: View {
           RemoteImage(url: imageURL, animated: true)
             .placeholder { placeholder }
             .processor(RoundCornerImageProcessor(radius: .point(30)))
+            .squared()
+        }
+        
+        section(title: "Stable cache key (unstable URL)") {
+          RemoteImage(url: signedURL, cacheKey: "poviokit-sample", animated: true)
+            .placeholder { placeholder }
+            .onSuccess { result in Logger.debug("cache key: loaded from \(result.cacheType)") }
             .squared()
         }
         

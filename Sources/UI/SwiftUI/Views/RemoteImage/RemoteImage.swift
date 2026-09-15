@@ -15,7 +15,7 @@ import SwiftUI
 /// fade transitions, and image processors.
 ///
 /// The `RemoteImage` can be parameterized with a custom placeholder view, an
-/// option for fade animation, and a Kingfisher image processor.
+/// option for fade animation, a cache key, and a Kingfisher image processor.
 ///
 /// ## Example with placeholder
 /// ```swift
@@ -30,6 +30,18 @@ import SwiftUI
 ///   .onFailure { error in
 ///     print("Failed to load image: \(error)")
 ///   }
+/// ```
+///
+/// ## Example with a cache key
+///
+/// By default the image is cached under its URL. That is wrong whenever the URL is
+/// signed or otherwise short-lived: the same picture arrives under a different URL on
+/// every fetch, so every fetch is a cache miss and already-drawn images blank out and
+/// come down again. Pass whatever identifies the image itself — typically the upload's
+/// id from your API — and the URL is then only where to fetch a miss from.
+///
+/// ```swift
+/// RemoteImage(url: media.url, cacheKey: media.id)
 /// ```
 ///
 /// ## Example with image processor
@@ -56,17 +68,28 @@ import SwiftUI
 /// ```
 public struct RemoteImage<Placeholder: View>: View {
   private let url: URL?
+  private let cacheKey: String?
   private let animated: Bool
   private var placeholder: Placeholder?
   private var processor: ImageProcessor?
   private var onSuccess: ((RetrieveImageResult) -> Void)?
   private var onFailure: ((KingfisherError) -> Void)?
   
+  /// Creates a view that loads the image at `url`.
+  ///
+  /// - Parameters:
+  ///   - url: Where to fetch the image from. `nil` renders the placeholder.
+  ///   - cacheKey: What to cache the image under. Defaults to `nil`, which keys it by
+  ///     `url` — pass an explicit key whenever the URL is signed or otherwise unstable,
+  ///     so the same image is not re-downloaded under every new URL.
+  ///   - animated: Whether a loaded image fades in.
   public init(
     url: URL?,
+    cacheKey: String? = nil,
     animated: Bool = false
   ) where Placeholder == EmptyView {
     self.url = url
+    self.cacheKey = cacheKey
     self.animated = animated
     self.placeholder = EmptyView()
     self.processor = nil
@@ -76,6 +99,7 @@ public struct RemoteImage<Placeholder: View>: View {
   
   private init(
     url: URL?,
+    cacheKey: String? = nil,
     animated: Bool = false,
     placeholder: Placeholder?,
     processor: ImageProcessor? = nil,
@@ -83,6 +107,7 @@ public struct RemoteImage<Placeholder: View>: View {
     onFailure: ((KingfisherError) -> Void)? = nil
   ) {
     self.url = url
+    self.cacheKey = cacheKey
     self.animated = animated
     self.placeholder = placeholder
     self.processor = processor
@@ -92,7 +117,7 @@ public struct RemoteImage<Placeholder: View>: View {
   
   public var body: some View {
     if let url {
-      configuredImage(KFImage(url))
+      configuredImage(KFImage(source: .network(KF.ImageResource(downloadURL: url, cacheKey: cacheKey))))
     } else {
       placeholder
     }
@@ -121,6 +146,7 @@ public extension RemoteImage {
   ) -> RemoteImage<NewPlaceholder> {
     RemoteImage<NewPlaceholder>(
       url: url,
+      cacheKey: cacheKey,
       animated: animated,
       placeholder: placeholder(),
       processor: processor,
@@ -138,6 +164,7 @@ public extension RemoteImage {
   func processor(_ processor: ImageProcessor?) -> RemoteImage {
     RemoteImage(
       url: url,
+      cacheKey: cacheKey,
       animated: animated,
       placeholder: placeholder,
       processor: processor,
@@ -153,6 +180,7 @@ public extension RemoteImage {
   func onSuccess(_ callback: @escaping (RetrieveImageResult) -> Void) -> RemoteImage {
     RemoteImage(
       url: url,
+      cacheKey: cacheKey,
       animated: animated,
       placeholder: placeholder,
       processor: processor,
@@ -168,6 +196,7 @@ public extension RemoteImage {
   func onFailure(_ callback: @escaping (KingfisherError) -> Void) -> RemoteImage {
     RemoteImage(
       url: url,
+      cacheKey: cacheKey,
       animated: animated,
       placeholder: placeholder,
       processor: processor,

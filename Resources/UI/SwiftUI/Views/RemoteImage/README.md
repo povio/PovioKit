@@ -19,6 +19,20 @@ RemoteImage(url: URL(string: "https://example.com/hero.jpg"))
 Passing `nil` as the URL renders the placeholder (or nothing if no
 placeholder is configured).
 
+## Cache key
+
+By default Kingfisher caches the image under its URL. That is wrong whenever the
+URL is signed or otherwise short-lived — the same picture arrives under a
+different URL on every fetch, so every fetch misses the cache and images that
+were already on screen blank out and come down again.
+
+Pass whatever identifies the image itself, typically the upload's id from your
+API. The URL is then only where to fetch a miss from.
+
+```swift
+RemoteImage(url: media.url, cacheKey: media.id)
+```
+
 ## Placeholder
 
 ```swift
