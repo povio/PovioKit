@@ -1,5 +1,131 @@
 ## Migration Guides
 
+### Migration from versions < 7.2.0
+
+This release is a bug-fix release. There are no source-breaking API changes,
+but several fixes change observable behavior. Review the items below if you
+relied on the previous behavior.
+
+**Core – NotificationCenter**
+* `NotificationCenter.observe(_:object:queue:callback:)` (both the single and
+  the array overload) is no longer `@discardableResult`. Block observers are
+  retained by the notification center until removed, so a discarded token
+  could never be unregistered. Discarding the result now produces a compiler
+  warning; keep the token and pass it to `NotificationCenter.remove(_:)`:
+  ```swift
+  let observer = NotificationCenter.observe(AppNotification.onAppResume) { _ in … }
+  // later
+  NotificationCenter.remove(observer)
+  ```
+
+**Core – AppInfo**
+* `AppInfo.openUrl(_:inSafari:)` (and `openAppStore`, `call`, `openSettings`,
+  `openNotificationSettings`, which use it) no longer consults
+  `UIApplication.canOpenURL` on iOS. `canOpenURL` returns `false` for any
+  scheme not declared in `LSApplicationQueriesSchemes` (e.g. `itms-apps`,
+  `x-safari-https`), which made those helpers fail. On iOS the return value
+  now means "forwarded to the system opener"; it is `true` for any valid URL.
+* `openUrl` is safe to call from any thread. Previously it trapped off the
+  main thread on iOS; the system opener is now always invoked on the main
+  thread (asynchronously when called from a background thread).
+* On macOS, `inSafari: true` now opens the URL in Safari. Previously it built
+  an invalid `safari://` URL and nothing was opened.
+
+**Core – DateFormatter**
+* `DateFormatter.iso8601Date` and `DateFormatter.rfc1123Date` now use the
+  `en_US_POSIX` locale and the Gregorian calendar, and `rfc1123Date` always
+  formats in GMT. Previously they used the user's locale and calendar, so
+  output could contain non-ASCII digits, non-Gregorian years or a local time
+  zone. The display presets (`time12Hour`, `longDate`, …) are unchanged.
+
+**Core – String, URL, DecodableDictionary, Double, MKPolygon**
+* `String.localized()` called without arguments returns the localized string
+  verbatim; a literal `%` is no longer treated as a format specifier.
+* `URL.appending(_:value:)` appends to the existing percent-encoded query
+  instead of re-serialising it, so existing items (including form-encoded
+  `+` spaces) are preserved. The new name and value are additionally escaped
+  for `+`, `&` and `=`.
+* Decoding `[Any]` via `DecodableDictionary` now throws
+  `DecodingError.dataCorrupted` for an unsupported element (previously an
+  infinite loop), and nested dictionaries/arrays that fail to decode now
+  propagate their error instead of being silently skipped.
+* `Double.convert(from:to:)` compares dimensions by base unit, so units that
+  are private subclasses (decoded, locale-derived or custom units) convert
+  correctly instead of returning `.nan`.
+* `MKPolygon.contains(coordinate:)` returns `false` for polygons with fewer
+  than three points instead of crashing.
+
+**Utilities – Money**
+* `Money ± Cents` (`money + 50`, `50 + money`, `money - 50`) is restored to the
+  6.x meaning: the cents are interpreted at `Money.defaults.precision` and
+  aligned with the `Money` operand's precision. In 7.0–7.1 the raw integer was
+  added at the `Money` operand's own precision. Results only differ when
+  `precision != Money.defaults.precision`, for example:
+  ```swift
+  let money = Money(amount: 1_000, currency: .usd, precision: 3) // 1.000
+  (money + 50).amount // 7.2: 1_500 (+0.50) — 7.0/7.1: 1_050 (+0.050)
+  ```
+
+**Utilities – UserDefault**
+* For an Optional `Value`, `@UserDefault` now returns the non-`nil`
+  `defaultValue` when no value is stored. Previously it returned `nil` and
+  wrote `null` into `UserDefaults` from the getter.
+
+**Utilities – InAppPurchaseService**
+* `isPurchased(_:)` uses `Transaction.currentEntitlement(for:)` instead of
+  `Transaction.latest(for:)`, so expired or refunded subscriptions are no
+  longer reported as purchased (they return `.failure(.notPurchased)`).
+  Consumables are not entitlements and also return `.notPurchased`.
+* `isPurchased(_:)` checks the identifiers passed to `init(identifiers:)`
+  rather than `availableProducts`, so it works even if the product fetch
+  failed. `purchase(product:options:)` retries the product fetch when
+  `availableProducts` is empty.
+* New `setTransactionUpdateHandler(_:)`: called for every verified
+  transaction arriving on `Transaction.updates` (Ask-to-Buy approvals,
+  purchases on other devices, renewals, refunds) right before it is
+  finished. Use it to deliver consumables; previously such transactions
+  were finished without the app being told.
+
+**Utilities – MediaPlayer**
+* A new player item no longer reports `.failed(undefinedState)` /
+  `didFailWithError` while it loads; `.unknown` status maps to `.preparing`.
+* `playbackInterval.endAt` is filled in with the item's duration once it is
+  ready (it stayed `0` before), which fixes `seekForward` jumping to the start
+  and `allowsLooping` restarting in a tight loop.
+* `play(from:to:)` now pauses at `toTime` when looping is disabled.
+* `replace(with:)` resets readiness, and status updates for a replaced item
+  are ignored.
+
+**Utilities – Camera, Exif, DispatchTimer, ColorInterpolator**
+* `PhotoCamera` raises the photo output's `maxPhotoQualityPrioritization` to
+  `.quality`, and `takePhoto(qualityPrioritization:)` clamps to it, so
+  `.quality` no longer raises an exception.
+* `Exif.update(_:)` now writes metadata for HEIC and TIFF images. When the
+  lossless metadata copy drops the new values, the image is re-encoded with
+  the metadata attached (for lossy formats this re-compresses the image).
+* One-shot `DispatchTimer`s use the default leeway instead of a leeway equal
+  to the interval, so they fire on time rather than up to 2× late.
+* `LinearColorInterpolator` supports grayscale colors (`.white`, `.black`,
+  `.gray`, `.clear`, `UIColor(white:alpha:)`) instead of throwing
+  `colorComponentsMissing`.
+
+**Async**
+* `AsyncSemaphore.waitUnlessCancelled()`: a cancellation that lands before
+  the waiter is enqueued now throws `CancellationError` instead of being lost.
+* `AsyncDebounceSequence`: a superseded `next()` call returns `nil` regardless
+  of the error type the base surfaces for the cancellation (e.g.
+  `URLError.cancelled` from `URLSession`), instead of throwing it.
+* `AsyncSampleSequence`: the window is anchored at its first element instead
+  of being reset by every element, so continuous input faster than the window
+  now emits once per window.
+
+**UI**
+* `UITableView.scrollToBottom(animated:)` scrolls to the last row of the last
+  non-empty section instead of crashing when trailing sections are empty.
+* `photoPicker` hides the "Take a Photo" action when no camera is available,
+  and `PhotoPickerView` falls back to `.photoLibrary` for an unavailable
+  source type, instead of raising `NSInvalidArgumentException`.
+
 ### Migration from versions < 7.0.0
 
 This release contains several source-breaking changes. The changes fall into

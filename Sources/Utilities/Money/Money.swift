@@ -237,11 +237,14 @@ public extension Money {
     )
   }
 
-  /// Cents addition — adds minor units of the same currency.
+  /// Cents addition — `rhs` is interpreted at `Money.defaults.precision`
+  /// (same as 6.x) and aligned with `lhs` before adding.
   static func + (lhs: Money, rhs: Cents) -> Money {
-    var res = lhs
-    res.amount += rhs
-    return res
+    var l = lhs
+    var r = Money(amount: rhs, currency: lhs.currency, localeIdentifier: lhs.localeIdentifier, precision: defaults.precision)
+    alignToSamePrecision(m1: &l, m2: &r)
+    l.amount += r.amount
+    return l
   }
 
   /// Cents addition — adds minor units of the same currency.
@@ -249,11 +252,14 @@ public extension Money {
     rhs + lhs
   }
 
-  /// Cents subtraction — subtracts minor units of the same currency.
+  /// Cents subtraction — `rhs` is interpreted at `Money.defaults.precision`
+  /// (same as 6.x) and aligned with `lhs` before subtracting.
   static func - (lhs: Money, rhs: Cents) -> Money {
-    var res = lhs
-    res.amount -= rhs
-    return res
+    var l = lhs
+    var r = Money(amount: rhs, currency: lhs.currency, localeIdentifier: lhs.localeIdentifier, precision: defaults.precision)
+    alignToSamePrecision(m1: &l, m2: &r)
+    l.amount -= r.amount
+    return l
   }
 
   /// Scalar multiplication.

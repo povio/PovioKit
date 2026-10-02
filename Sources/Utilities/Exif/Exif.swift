@@ -76,13 +76,37 @@ public extension Exif {
     guard CGImageDestinationCopyImageSource(destination, imageSource, options as CFDictionary, nil) else {
       throw ExifError.copyImageSource
     }
+    if containsExifValues(newValue, in: imageData as Data) {
+      return imageData as Data
+    }
     
-    return imageData as Data
+    // `CGImageDestinationCopyImageSource` succeeds but silently drops the new
+    // metadata for some formats (notably HEIC and TIFF). Fall back to
+    // re-encoding the image with the metadata attached.
+    guard let image = CGImageSourceCreateImageAtIndex(imageSource, 0, nil) else {
+      throw ExifError.copyImageSource
+    }
+    let reencodedData: CFMutableData = CFDataCreateMutable(nil, 0)
+    guard let reencodeDestination = CGImageDestinationCreateWithData(reencodedData, UTI, 1, nil) else {
+      throw ExifError.createImageDestination
+    }
+    CGImageDestinationAddImageAndMetadata(reencodeDestination, image, mutableMetadata, nil)
+    guard CGImageDestinationFinalize(reencodeDestination) else {
+      throw ExifError.copyImageSource
+    }
+    return reencodedData as Data
   }
 }
 
 // MARK: - Private Methods
 private extension Exif {
+  func containsExifValues(_ values: [CFString: String], in data: Data) -> Bool {
+    guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+          let properties = CGImageSourceCopyPropertiesAtIndex(source, 0, nil) as? [CFString: Any],
+          let exif = properties[kCGImagePropertyExifDictionary] as? [CFString: Any] else { return false }
+    return values.keys.allSatisfy { exif[$0] != nil }
+  }
+
   func getImageSource() -> CGImageSource? {
     var imageSource: CGImageSource?
     switch source {

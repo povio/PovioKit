@@ -42,13 +42,12 @@ public extension URL {
 
   /// Appends a query parameter to the URL.
   ///
-  /// The implementation relies on `URLComponents` for all percent-encoding
-  /// except for the literal `+`, which `URLComponents` intentionally leaves
-  /// unencoded even though many servers treat it as a space under
-  /// `application/x-www-form-urlencoded` semantics. The `+` fixup operates
-  /// on `percentEncodedQuery`, so it is idempotent and does not double-encode
-  /// other characters — values can be composed or round-tripped through
-  /// `appending` any number of times without corruption.
+  /// The new name and value are percent-encoded with the query-allowed set,
+  /// additionally escaping `+`, `&` and `=` (many servers treat a literal `+`
+  /// as a space under `application/x-www-form-urlencoded` semantics). The
+  /// existing query is appended to as-is and never re-serialised, so items
+  /// already present (including form-encoded `+` spaces) are preserved and
+  /// values can be composed through `appending` any number of times.
   ///
   /// ## Example
   /// ```swift
@@ -65,15 +64,15 @@ public extension URL {
       // return the original URL unchanged.
       return self
     }
-    var queryItems = components.queryItems ?? []
-    queryItems.append(URLQueryItem(name: name, value: value))
-    components.queryItems = queryItems
-    // Explicit `+` escape — see doc comment above. Not doing this means the
-    // value round-trips fine on Apple platforms but gets silently corrupted
-    // on form-encoded server parsers.
-    if let encodedQuery = components.percentEncodedQuery {
-      components.percentEncodedQuery = encodedQuery.replacingOccurrences(of: "+", with: "%2B")
-    }
+    // Append to the already-encoded query instead of re-serialising it, so
+    // existing items (including form-encoded `+`) are preserved verbatim.
+    // The new name/value get an explicit `+` escape — see doc comment above.
+    var allowed = CharacterSet.urlQueryAllowed
+    allowed.remove(charactersIn: "+&=")
+    let encode = { (string: String) in string.addingPercentEncoding(withAllowedCharacters: allowed) ?? string }
+    var queryItems = components.percentEncodedQueryItems ?? []
+    queryItems.append(URLQueryItem(name: encode(name), value: value.map(encode)))
+    components.percentEncodedQueryItems = queryItems
     return components.url ?? self
   }
 

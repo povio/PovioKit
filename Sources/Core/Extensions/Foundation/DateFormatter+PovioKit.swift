@@ -43,8 +43,11 @@ public extension DateFormatter {
   /// Format a date using an ISO format.
   ///
   /// `2024-10-02`
+  ///
+  /// Uses the `en_US_POSIX` locale and Gregorian calendar so the output is
+  /// stable regardless of the user's locale or calendar settings.
   static var iso8601Date: DateFormatter {
-    makeFormatter(with: "yyyy-MM-dd")
+    makeFixedFormatter(with: "yyyy-MM-dd")
   }
   
   /// Formats a date using a US format.
@@ -64,8 +67,13 @@ public extension DateFormatter {
   /// Format a date using an RFC 1123 format.
   ///
   /// `Tue, 02 Oct 2024 15:30:00 GMT`
+  ///
+  /// Uses the `en_US_POSIX` locale, Gregorian calendar and the GMT time zone,
+  /// as required by RFC 1123 / HTTP dates.
   static var rfc1123Date: DateFormatter {
-    makeFormatter(with: "EEE, dd MMM yyyy HH:mm:ss zzz")
+    let formatter = makeFixedFormatter(with: "EEE, dd MMM yyyy HH:mm:ss 'GMT'")
+    formatter.timeZone = TimeZone(secondsFromGMT: 0)
+    return formatter
   }
 }
 
@@ -73,6 +81,15 @@ private extension DateFormatter {
   static func makeFormatter(with format: String) -> DateFormatter {
     let dateFormatter = DateFormatter()
     dateFormatter.locale = .autoupdatingCurrent
+    dateFormatter.dateFormat = format
+    return dateFormatter
+  }
+
+  /// Formatter for machine-readable formats, independent of user settings.
+  static func makeFixedFormatter(with format: String) -> DateFormatter {
+    let dateFormatter = DateFormatter()
+    dateFormatter.locale = Locale(identifier: "en_US_POSIX")
+    dateFormatter.calendar = Calendar(identifier: .gregorian)
     dateFormatter.dateFormat = format
     return dateFormatter
   }

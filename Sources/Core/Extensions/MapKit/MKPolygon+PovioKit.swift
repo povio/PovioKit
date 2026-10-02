@@ -11,10 +11,13 @@ import MapKit.MKPolygon
 public extension MKPolygon {
   /// Returns Bool to check if given `coordinate` exists in polygon
   func contains(coordinate: CLLocationCoordinate2D) -> Bool {
+    // A polygon needs at least 3 points; the renderer's (implicitly unwrapped) path is nil otherwise.
+    guard pointCount >= 3 else { return false }
     let polygonRenderer = MKPolygonRenderer(polygon: self)
     let currentMapPoint = MKMapPoint(coordinate)
     let polygonViewPoint: CGPoint = polygonRenderer.point(for: currentMapPoint)
-    return polygonRenderer.path.contains(polygonViewPoint, using: .evenOdd, transform: .identity)
+    guard let path = polygonRenderer.path else { return false }
+    return path.contains(polygonViewPoint, using: .evenOdd, transform: .identity)
   }
   
   /// Returns top/northern most coordinate for polygon

@@ -65,7 +65,11 @@ public extension NotificationCenter {
     NotificationCenter.default.post(name: notification.name, object: object, userInfo: userInfo)
   }
   
-  @discardableResult
+  /// Adds a block-based observer.
+  ///
+  /// - Important: Keep the returned token and pass it to `remove(_:)` when done.
+  ///   Block observers are retained by the notification center until removed, so a
+  ///   discarded token can never be unregistered.
   static func observe<N: PovioNotificationRepresentable>(
     _ notification: N,
     object: Any? = nil,
@@ -80,7 +84,9 @@ public extension NotificationCenter {
     )
   }
   
-  @discardableResult
+  /// Adds a block-based observer for each notification.
+  ///
+  /// - Important: Keep the returned tokens and remove them when done (see the single-notification overload).
   static func observe<N: PovioNotificationRepresentable>(
     _ notifications: [N],
     object: Any? = nil,

@@ -184,6 +184,13 @@ final class ColorInterpolatorTests: XCTestCase {
     let colorOver = interpolator.interpolate(startComponents, with: endComponents, percentage: 1.5)
     XCTAssertEqual(colorOver.rgba.red, 1.0, accuracy: 0.01, "Should clamp to 1")
   }
+
+  func testInterpolatesGrayscaleColors() throws {
+    let color = try LinearColorInterpolator().interpolate(.black, with: .white, percentage: 0.5)
+    var white: CGFloat = 0
+    color.getWhite(&white, alpha: nil)
+    XCTAssertEqual(white, 0.5, accuracy: 0.01)
+  }
 }
 
 // MARK: - Helper Extensions

@@ -13,6 +13,9 @@ public extension String {
   func localized(_ args: CVarArg...) -> String {
     guard !isEmpty else { return self }
     let localizedString = NSLocalizedString(self, comment: "")
+    // Only run through the formatter when there are arguments; otherwise a
+    // literal `%` in the string would be interpreted as a format specifier.
+    guard !args.isEmpty else { return localizedString }
     return withVaList(args) { NSString(format: localizedString, locale: Locale.current, arguments: $0) as String }
   }
   

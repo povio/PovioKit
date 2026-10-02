@@ -253,5 +253,12 @@ final class DateFormatterTests: XCTestCase {
     XCTAssertTrue(result.contains("12:00"), "Should contain 12:00 for noon")
     XCTAssertTrue(result.contains("PM") || result.contains("pm"), "Noon should be PM")
   }
+
+  func testMachineReadableFormattersIgnoreUserLocaleAndCalendar() {
+    let iso = DateFormatter.iso8601Date
+    XCTAssertEqual(iso.locale.identifier, "en_US_POSIX")
+    XCTAssertEqual(iso.calendar.identifier, .gregorian)
+    XCTAssertEqual(DateFormatter.rfc1123Date.string(from: Date(timeIntervalSince1970: 0)), "Thu, 01 Jan 1970 00:00:00 GMT")
+  }
 }
 

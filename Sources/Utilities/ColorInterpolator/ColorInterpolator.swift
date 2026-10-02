@@ -16,11 +16,20 @@ public protocol ColorInterpolator {
 
 public struct LinearColorInterpolator: ColorInterpolator {
   public init() {}
+
+  /// RGBA components in the sRGB space. Reading `cgColor.components` directly
+  /// fails for grayscale colors (`.white`, `.black`, `.gray`, `.clear`,
+  /// `UIColor(white:alpha:)`), which only have two components.
+  private func rgbaComponents(of color: UIColor) -> [CGFloat]? {
+    var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+    guard color.getRed(&red, green: &green, blue: &blue, alpha: &alpha) else { return nil }
+    return [red, green, blue, alpha]
+  }
   
   public func interpolate(_ startColor: UIColor, with color: UIColor, percentage: CGFloat) throws -> UIColor {
     guard
-      let startColorComponents = startColor.cgColor.components, startColorComponents.count >= 3,
-      let endColorComponents = color.cgColor.components, endColorComponents.count >= 3 else { throw Error.colorComponentsMissing }
+      let startColorComponents = rgbaComponents(of: startColor),
+      let endColorComponents = rgbaComponents(of: color) else { throw Error.colorComponentsMissing }
     return interpolate(startColorComponents,
                        with: endColorComponents,
                        percentage: percentage)
@@ -37,7 +46,7 @@ public struct LinearColorInterpolator: ColorInterpolator {
     // index in `colorPoints`; a previous compactMap version silently shifted
     // indices when a color had no CG components.
     let components: [[CGFloat]] = try colorPoints.map { color in
-      guard let c = color.cgColor.components, c.count >= 3 else {
+      guard let c = rgbaComponents(of: color) else {
         throw Error.colorComponentsMissing
       }
       return c

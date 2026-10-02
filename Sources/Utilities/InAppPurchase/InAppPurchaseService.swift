@@ -46,6 +46,12 @@ public actor InAppPurchaseService {
   /// transaction update from `Transaction.updates`.
   public private(set) var purchasedProducts: [Product] = []
 
+  /// Called for every verified transaction delivered outside of
+  /// ``purchase(product:options:)`` — e.g. approved Ask-to-Buy requests,
+  /// purchases made on another device, renewals and refunds — right before it
+  /// is finished. Use it to deliver consumables and unlock content.
+  private var transactionUpdateHandler: (@Sendable (Transaction) async -> Void)?
+
   /// Initialize new InAppPurchase with all available products.
   ///
   /// The service begins listening for transaction updates and loads products
@@ -77,6 +83,13 @@ extension InAppPurchaseService {
     await updatePurchasedProducts()
   }
 
+  /// Registers a handler for transactions arriving on `Transaction.updates`
+  /// (Ask-to-Buy approvals, other devices, renewals, refunds). The handler runs
+  /// before the transaction is finished, so consumables can be delivered safely.
+  public func setTransactionUpdateHandler(_ handler: (@Sendable (Transaction) async -> Void)?) {
+    transactionUpdateHandler = handler
+  }
+
   /// Purchase product with options.
   /// - Parameters:
   ///   - product: InAppPurchase product identifier (eg. "com.test.plan") to purchase
@@ -88,6 +101,10 @@ extension InAppPurchaseService {
   /// * ``InAppPurchaseError.paymentPending``
   /// * ``InAppPurchaseError.requestFailed(error)``
   public func purchase(product: IAPProduct, options: Set<Product.PurchaseOption> = []) async -> Result<Transaction, InAppPurchaseError> {
+    if availableProducts.isEmpty {
+      // The initial fetch may have failed (offline launch); retry lazily.
+      await requestProducts()
+    }
     guard let product = availableProducts.first(where: { $0.id == product }) else {
       Logger.warning("Purchase failed.", params: ["reason": "missing product id"])
       return .failure(InAppPurchaseError.missingProductId)
@@ -120,11 +137,14 @@ extension InAppPurchaseService {
   /// - Parameter product: ``IAPProduct`` to check if purchased
   /// - Returns: Result type with ``Bool`` value if product is purchased or not and ``InAppPurchaseError`` if request fails.
   public func isPurchased(_ product: IAPProduct) async -> Result<Bool, InAppPurchaseError> {
-    guard availableProducts.first(where: { $0.id == product }) != nil else {
+    // Check against the configured identifiers rather than `availableProducts`,
+    // so entitlement checks don't depend on the network product fetch.
+    guard productIdentifiers.contains(product) else {
       Logger.warning("Check purchase failed.", params: ["reason": "missing product id"])
       return .failure(InAppPurchaseError.missingProductId)
     }
-    guard let result = await Transaction.latest(for: product) else {
+    // `currentEntitlement(for:)` excludes expired subscriptions, unlike `latest(for:)`.
+    guard let result = await Transaction.currentEntitlement(for: product) else {
       return .failure(InAppPurchaseError.notPurchased)
     }
     do {
@@ -171,6 +191,8 @@ private extension InAppPurchaseService {
         do {
           let transaction = try self.checkVerified(result)
           await self.updatePurchasedProducts()
+          let handler = await self.transactionUpdateHandler
+          await handler?(transaction)
           await transaction.finish()
         } catch {
           Logger.error("Transaction failed verification.", params: ["error": error.localizedDescription])

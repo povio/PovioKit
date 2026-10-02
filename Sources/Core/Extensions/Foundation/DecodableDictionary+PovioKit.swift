@@ -130,12 +130,13 @@ public extension UnkeyedDecodingContainer {
         elements.append(double)
       } else if let string = try? decode(String.self) {
         elements.append(string)
-      } else if let values = try? nestedContainer(keyedBy: AnyCodingKey.self),
-                let element = try? values.decode([String: Any].self) {
-        elements.append(element)
-      } else if var values = try? nestedUnkeyedContainer(),
-                let element = try? values.decode([Any].self) {
-        elements.append(element)
+      } else if let values = try? nestedContainer(keyedBy: AnyCodingKey.self) {
+        elements.append(try values.decode([String: Any].self))
+      } else if var values = try? nestedUnkeyedContainer() {
+        elements.append(try values.decode([Any].self))
+      } else {
+        // Without this the container index never advances and the loop spins forever.
+        throw DecodingError.dataCorruptedError(in: self, debugDescription: "Unsupported value at index \(currentIndex).")
       }
     }
     return elements

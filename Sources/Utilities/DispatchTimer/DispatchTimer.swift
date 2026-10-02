@@ -37,7 +37,8 @@ public extension DispatchTimer {
     if repeating {
       newTimer.schedule(deadline: .now() + interval, repeating: interval)
     } else {
-      newTimer.schedule(deadline: .now() + interval, leeway: interval)
+      // Default leeway; using `interval` as leeway let one-shot timers fire up to 2x late.
+      newTimer.schedule(deadline: .now() + interval)
     }
     newTimer.setEventHandler { [weak self] in
       if !repeating {

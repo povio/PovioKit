@@ -46,7 +46,11 @@ public struct UserDefault<Value: Codable>: @unchecked Sendable {
       }
 
       // check for legacy non-encoded stored value
-      if let oldValue = storage.object(forKey: keyObject.key) as? Value {
+      // Unwrap the stored object first: for an Optional `Value`, casting a
+      // missing (`nil`) object `as? Value` succeeds with `.some(nil)`, which
+      // would bypass `defaultValue` and write `null` back from the getter.
+      if let storedObject = storage.object(forKey: keyObject.key),
+         let oldValue = storedObject as? Value {
         // migrate to new format if it's a complex type
         if !isPrimitiveType(Value.self) {
           do {

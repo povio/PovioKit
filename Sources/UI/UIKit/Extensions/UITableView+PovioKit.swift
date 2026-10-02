@@ -60,10 +60,10 @@ public extension UITableView {
   
   /// Scroll table to last row in last section
   func scrollToBottom(animated: Bool = true) {
-    guard numberOfSections > 0 else { return }
-    
-    let lastSection = max(0, numberOfSections - 1)
-    let lastRow = max(0, numberOfRows(inSection: lastSection) - 1)
+    // Find the last section that has rows; scrolling to row 0 of an empty
+    // section raises an exception.
+    guard let lastSection = (0..<numberOfSections).last(where: { numberOfRows(inSection: $0) > 0 }) else { return }
+    let lastRow = numberOfRows(inSection: lastSection) - 1
     scrollToRow(at: IndexPath(row: lastRow, section: lastSection), at: .bottom, animated: animated)
   }
 }

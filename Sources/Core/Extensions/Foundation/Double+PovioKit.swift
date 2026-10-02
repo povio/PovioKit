@@ -27,7 +27,9 @@ public extension Double {
   ///            measurement, or `.nan` if `from` and `to` belong to different
   ///            dimension types (e.g. length vs. mass).
   func convert(from: Dimension, to: Dimension) -> Double {
-    guard type(of: from) == type(of: to) else { return .nan }
+    // Compare dimensions by base unit rather than by concrete class: units obtained from
+    // the locale, decoding or custom subclasses can be private subclasses of the same dimension.
+    guard type(of: from).baseUnit() == type(of: to).baseUnit() else { return .nan }
     return Measurement(value: self, unit: from)
       .converted(to: to)
       .value

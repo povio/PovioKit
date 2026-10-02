@@ -123,19 +123,21 @@ extension AsyncDebounceSequence: AsyncSequence where C.Duration == Duration {
       return try await withTaskCancellationHandler {
         do {
           return try await task.value
-        } catch is CancellationError {
+        } catch {
           // Two kinds of cancellation reach this path:
-          //   1. A newer call to `next()` cancelled our internal task to
+          //   1. The caller's enclosing Task was cancelled — propagate
+          //      `CancellationError` so the caller can unwind.
+          //   2. A newer call to `next()` cancelled our internal task to
           //      debounce it away — the correct answer is "no element yet".
-          //   2. The caller's enclosing Task was cancelled — we must propagate
-          //      the `CancellationError` so the caller can unwind.
-          // We can tell the two apart by inspecting the current task's
-          // cancellation flag here: only (2) flips it.
+          //      The base may surface that cancellation as any error type
+          //      (e.g. `URLError.cancelled` from URLSession), so check the
+          //      internal task's flag rather than the error type.
           if Task.isCancelled {
             throw CancellationError()
           }
-          return nil
-        } catch {
+          if task.isCancelled {
+            return nil
+          }
           throw error
         }
       } onCancel: {

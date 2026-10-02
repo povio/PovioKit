@@ -57,6 +57,9 @@ public final class AsyncSemaphore: @unchecked Sendable {
   /// callers but does take precedence on a tie.
   private var legacyWaiters: [LegacyWaiter] = []
   private var nextWaiterID: WaiterID = 0
+  /// IDs whose cancellation handler ran before the waiter was enqueued.
+  /// The body checks this under `lock` so an early cancellation is not lost.
+  private var cancelledBeforeEnqueue: Set<WaiterID> = []
 
   public init(value: Int) {
     self.permits = max(0, value)
@@ -85,27 +88,35 @@ public final class AsyncSemaphore: @unchecked Sendable {
       nextWaiterID &+= 1
       return nextWaiterID
     }
+    defer { lock.withLock { _ = cancelledBeforeEnqueue.remove(id) } }
 
     try await withTaskCancellationHandler {
       try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
-        let resumeImmediately: Bool = lock.withLock {
+        enum Outcome { case acquired, cancelled, enqueued }
+        let outcome: Outcome = lock.withLock {
+          if cancelledBeforeEnqueue.remove(id) != nil {
+            return .cancelled
+          }
           if permits > 0 {
             permits -= 1
-            return true
+            return .acquired
           }
           waiters.append(Waiter(id: id, continuation: continuation))
-          return false
+          return .enqueued
         }
-        if resumeImmediately {
-          continuation.resume()
+        switch outcome {
+        case .acquired: continuation.resume()
+        case .cancelled: continuation.resume(throwing: CancellationError())
+        case .enqueued: break
         }
       }
     } onCancel: {
       let pending = lock.withLock { () -> CheckedContinuation<Void, Error>? in
         guard let index = waiters.firstIndex(where: { $0.id == id }) else {
-          // Either we never entered the queue (permit was available
-          // immediately) or `release()` already removed us. Nothing to
-          // do here — the body either resumed already or is in flight.
+          // Either the body has not enqueued yet (record the cancellation so
+          // it throws instead of waiting), or it already resumed / was
+          // removed by `release()` (the stale entry is cleaned up below).
+          cancelledBeforeEnqueue.insert(id)
           return nil
         }
         let cont = waiters[index].continuation
