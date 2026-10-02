@@ -25,7 +25,9 @@ public struct PhotoPickerView: UIViewControllerRepresentable {
   
   public func makeUIViewController(context: Context) -> UIImagePickerController {
     let imagePicker = UIImagePickerController()
-    imagePicker.sourceType = sourceType
+    // Setting an unavailable source type (e.g. `.camera` on the Simulator or a
+    // device without a camera) raises `NSInvalidArgumentException`.
+    imagePicker.sourceType = UIImagePickerController.isSourceTypeAvailable(sourceType) ? sourceType : .photoLibrary
     imagePicker.delegate = context.coordinator
     return imagePicker
   }

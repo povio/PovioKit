@@ -316,4 +316,11 @@ final class MoneyTests: XCTestCase {
     XCTAssertNotNil(json["localeIdentifier"])
     XCTAssertNotNil(json["precision"])
   }
+
+  /// Cents are interpreted at `Money.defaults.precision` and aligned to the lhs precision.
+  func testAddCentsAlignsPrecision() {
+    let money = Money(amount: 1_000, currency: .usd, precision: 3) // 1.000
+    XCTAssertEqual((money + 50).amount, 1_500) // + 0.50
+    XCTAssertEqual((money - 50).amount, 500)
+  }
 }

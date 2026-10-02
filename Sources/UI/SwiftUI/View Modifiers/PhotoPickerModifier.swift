@@ -24,8 +24,10 @@ public struct PhotoPickerModifier: ViewModifier {
   public func body(content: Content) -> some View {
     content
       .confirmationDialog("", isPresented: $present) {
-        Button(configuration.takePhoto) {
-          showImageCapture.toggle()
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+          Button(configuration.takePhoto) {
+            showImageCapture.toggle()
+          }
         }
         Button(configuration.chooseFromLibrary) {
           showPhotoLibrary.toggle()

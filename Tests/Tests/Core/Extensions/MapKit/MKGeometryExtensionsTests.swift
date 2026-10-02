@@ -59,6 +59,12 @@ final class MKGeometryExtensionsTests: XCTestCase {
     let view: TestAnnotationView = mapView.dequeueAnnotationView(TestAnnotationView.self, for: annotation)
     XCTAssertEqual(view.reuseIdentifier, TestAnnotationView.identifier)
   }
+
+  func testPolygonContainsWithTooFewPointsReturnsFalse() {
+    let coordinates = [CLLocationCoordinate2D(latitude: 0, longitude: 0), CLLocationCoordinate2D(latitude: 1, longitude: 1)]
+    let polygon = MKPolygon(coordinates: coordinates, count: coordinates.count)
+    XCTAssertFalse(polygon.contains(coordinate: .init(latitude: 0.5, longitude: 0.5)))
+  }
 }
 
 private final class TestAnnotationView: MKAnnotationView {}

@@ -81,7 +81,10 @@ public extension PhotoCamera {
       
       let photoSettings = AVCapturePhotoSettings()
       photoSettings.maxPhotoDimensions = isHighResolutionPhotoEnabled ? self.photoOutput.maxPhotoDimensions : .init(width: 0, height: 0)
-      photoSettings.photoQualityPrioritization = qualityPrioritization
+      // Clamp to the output's maximum; exceeding it raises an exception.
+      photoSettings.photoQualityPrioritization = qualityPrioritization.rawValue > self.photoOutput.maxPhotoQualityPrioritization.rawValue
+        ? self.photoOutput.maxPhotoQualityPrioritization
+        : qualityPrioritization
       if self.photoOutput.supportedFlashModes.contains(flashMode) {
         photoSettings.flashMode = flashMode
       }
@@ -159,6 +162,9 @@ private extension PhotoCamera {
         }
         session.addOutput(photoOutput)
       }
+      // Capturing with a prioritization above the output's maximum raises an
+      // exception, so allow up to `.quality` (the default max is `.balanced`).
+      photoOutput.maxPhotoQualityPrioritization = .quality
     }
   }
 }

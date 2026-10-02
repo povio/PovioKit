@@ -26,4 +26,11 @@ class DoubleTests: XCTestCase {
     XCTAssertEqual(1.5.convert(from: UnitMass.kilograms, to: UnitMass.grams), 1500)
     XCTAssertEqual(1500.convert(from: UnitMass.grams, to: UnitMass.kilograms), 1.5)
   }
+
+  func testConvertWithDecodedUnit() throws {
+    let encoded = try JSONEncoder().encode(Measurement(value: 1, unit: UnitLength.kilometers))
+    let decoded = try JSONDecoder().decode(Measurement<UnitLength>.self, from: encoded)
+    XCTAssertEqual(1.0.convert(from: decoded.unit, to: UnitLength.meters), 1000, accuracy: 0.0001)
+    XCTAssertTrue(1.0.convert(from: UnitLength.meters, to: UnitMass.kilograms).isNaN)
+  }
 }

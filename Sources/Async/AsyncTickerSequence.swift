@@ -9,6 +9,11 @@ import Foundation
 
 /// An infinite sequence that emits timestamps at a fixed interval.
 ///
+/// Ticks are scheduled on a fixed grid (`start + n * interval`) so they never
+/// drift. As a consequence, if the consumer stalls for several intervals the
+/// missed ticks are delivered back-to-back afterwards; drop stale ticks on the
+/// consumer side (e.g. compare against `clock.now`) if that is not wanted.
+///
 /// ## Example
 /// ```swift
 /// let ticker = AsyncTickerSequence(

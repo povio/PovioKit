@@ -59,44 +59,45 @@ public enum AppInfo {
   
   /// Opens the given URL in the default browser when available.
   ///
-  /// If `inSafari` is `true`, Safari is preferred when platform support is available.
+  /// If `inSafari` is `true`, Safari is preferred when platform support is available
+  /// (iOS 17.5+ via the `x-safari-` scheme, macOS by opening the URL with Safari).
   ///
-  /// - Returns: `true` when the URL passes `canOpenURL` and is forwarded for opening.
+  /// Safe to call from any thread: the system opener is always invoked on the main thread.
+  /// `canOpenURL` is intentionally not consulted on iOS, because it returns `false` for any
+  /// scheme the app has not declared in `LSApplicationQueriesSchemes` (e.g. `itms-apps`,
+  /// `x-safari-https`), even though opening those URLs works.
+  ///
+  /// - Returns: `true` when the URL is forwarded to the system opener.
   @discardableResult
   public static func openUrl(_ url: URL, inSafari: Bool = false) -> Bool {
-    var targetUrl = url
 #if os(iOS)
+    var targetUrl = url
     if inSafari, #available(iOS 17.5, *) {
       guard let safariUrl = URL(string: "x-safari-\(url.absoluteString)") else { return false }
       targetUrl = safariUrl
     }
-    // The default handlers touch `UIApplication.shared`, which is main-actor
-    // isolated. `MainActor.assumeIsolated` preserves the existing
-    // non-isolated API contract while satisfying Swift 6's strict concurrency
-    // checker. Callers that invoke these handlers off-main will still trap
-    // at the `assumeIsolated` precondition — which is the correct behavior
-    // because `UIApplication.open(_:options:)` is main-thread only anyway.
-    let canOpen = AppInfoURLHandlerStore.canOpenUrlHandlerForTesting ?? { target in
-      MainActor.assumeIsolated { UIApplication.shared.canOpenURL(target) }
-    }
+    let canOpen = AppInfoURLHandlerStore.canOpenUrlHandlerForTesting ?? { _ in true }
     let open = AppInfoURLHandlerStore.openUrlHandlerForTesting ?? { target in
-      MainActor.assumeIsolated { UIApplication.shared.open(target, options: [:]) }
+      onMain { UIApplication.shared.open(target, options: [:]) }
     }
     guard canOpen(targetUrl) else { return false }
     open(targetUrl)
     return true
 #elseif os(macOS)
-    if inSafari, let safariUrl = URL(string: "safari://\(url.absoluteString)") {
-      targetUrl = safariUrl
-    }
     let canOpen = AppInfoURLHandlerStore.canOpenUrlHandlerForTesting ?? { target in
       NSWorkspace.shared.urlForApplication(toOpen: target) != nil
     }
     let open = AppInfoURLHandlerStore.openUrlHandlerForTesting ?? { target in
-      NSWorkspace.shared.open(target)
+      onMain {
+        if inSafari, let safari = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Safari") {
+          NSWorkspace.shared.open([target], withApplicationAt: safari, configuration: .init())
+        } else {
+          NSWorkspace.shared.open(target)
+        }
+      }
     }
-    guard canOpen(targetUrl) else { return false }
-    open(targetUrl)
+    guard canOpen(url) else { return false }
+    open(url)
     return true
 #else
     return false
@@ -125,6 +126,16 @@ public enum AppInfo {
   /// `Info.plist` does not contain `CFBundleShortVersionString`.
   public static var version: String? {
     Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+  }
+}
+
+/// Runs `work` on the main actor: synchronously when already on the main thread,
+/// otherwise asynchronously on the main queue.
+private func onMain(_ work: @escaping @MainActor @Sendable () -> Void) {
+  if Thread.isMainThread {
+    MainActor.assumeIsolated(work)
+  } else {
+    DispatchQueue.main.async(execute: work)
   }
 }
 

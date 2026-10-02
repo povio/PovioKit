@@ -98,4 +98,10 @@ final class URLTests: XCTestCase {
     XCTAssertEqual(url.queryParameters?["extra"], "x")
     XCTAssertEqual(url.absoluteString, "https://povio.com?token=a%2Bb&extra=x")
   }
+
+  /// Existing query items (including a form-encoded `+` space) must be preserved verbatim.
+  func testAppendingPreservesExistingQuery() {
+    let url = URL.require("https://povio.com?q=hello+world").appending("page", value: "2")
+    XCTAssertEqual(url.absoluteString, "https://povio.com?q=hello+world&page=2")
+  }
 }

@@ -37,6 +37,7 @@ import Combine
 
 final class SessionObserver {
     private var cancellables = Set<AnyCancellable>()
+    private var signInObserver: NSObjectProtocol?
 
     init() {
         NotificationCenter
@@ -47,9 +48,14 @@ final class SessionObserver {
             .store(in: &cancellables)
 
         let customNotification = AppNotification.named("com.myapp.notification.signInComplete")
-        NotificationCenter.observe(customNotification) { _ in
+        // Keep the token; block observers can only be removed through it.
+        signInObserver = NotificationCenter.observe(customNotification) { _ in
             print("Sign in complete")
         }
+    }
+
+    deinit {
+        signInObserver.map(NotificationCenter.remove)
     }
 }
 
@@ -67,7 +73,9 @@ Or use the built-in typed enum:
 
 ```swift
 NotificationCenter.publisher(for: AppNotification.onAppResume)
-NotificationCenter.observe(AppNotification.keyboardWillShow) { _ in
+let keyboardObserver = NotificationCenter.observe(AppNotification.keyboardWillShow) { _ in
     print("Keyboard will show")
 }
+// later
+NotificationCenter.remove(keyboardObserver)
 ```

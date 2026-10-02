@@ -558,6 +558,13 @@ class UserDefaultTests: XCTestCase {
     // Then - should return custom defaultValue (2.71), not UserDefaults default (0.0)
     XCTAssertEqual(value, 2.71, accuracy: 0.001)
   }
+
+  func testOptionalValueFallsBackToNonNilDefaultWithoutWriting() {
+    let key = "test_optional_default_key"
+    let wrapper = UserDefault<String?>(defaultValue: "fallback", key: key, storage: userDefaults)
+    XCTAssertEqual(wrapper.wrappedValue, "fallback")
+    XCTAssertNil(userDefaults.object(forKey: key), "Getter must not write to storage")
+  }
 }
 
 extension UserDefaultTests {

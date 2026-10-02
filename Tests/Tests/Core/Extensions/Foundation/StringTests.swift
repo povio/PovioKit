@@ -83,4 +83,8 @@ class StringTests: XCTestCase {
     XCTAssertEqual("John Doe".initials, "JD")
     XCTAssertEqual("Elena Wayne Gomez".initials, "EG")
   }
+
+  func testLocalizedWithoutArgumentsKeepsPercentSign() {
+    XCTAssertEqual("100% done".localized(), "100% done")
+  }
 }

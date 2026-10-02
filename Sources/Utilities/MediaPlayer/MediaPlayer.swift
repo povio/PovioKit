@@ -219,7 +219,8 @@ public final class MediaPlayer {
   /// Seeks forward by `seconds`, clamped to the end of
   /// ``playbackInterval``.
   public func seekForward(seconds: Double) {
-    setPlaybackPosition(to: min(currentTimeSeconds + seconds, playbackInterval.endAt))
+    let endAt = playbackInterval.endAt > 0 ? playbackInterval.endAt : duration
+    setPlaybackPosition(to: min(currentTimeSeconds + seconds, endAt))
   }
 
   /// Seeks backward by `seconds`, clamped to the start of
@@ -236,6 +237,8 @@ public final class MediaPlayer {
   /// Pass `nil` to clear the player.
   public func replace(with item: AVPlayerItem?) {
     avPlayer.replaceCurrentItem(with: item)
+    // The new item starts unloaded; readiness is re-reported by its KVO observer.
+    canPlay = false
     playbackInterval = (0, duration)
     setupPlayerItemObserver()
   }
@@ -296,18 +299,25 @@ private extension MediaPlayer {
       // observed property; hop to main so we can touch the MainActor
       // state without violating isolation.
       Task { @MainActor [weak self] in
-        guard let self else { return }
+        // Ignore hops that arrive after the item was replaced.
+        guard let self, playerItem === self.avPlayer.currentItem else { return }
         switch playerItem.status {
         case .readyToPlay:
           self.canPlay = true
+          // `duration` is unknown (0) until the item is ready, so an interval
+          // created before that point is extended to cover the whole item.
+          if self.playbackInterval.endAt <= 0 {
+            self.playbackInterval.endAt = self.duration
+          }
           self.state = .readyToPlay
           self.setupPeriodicTimeObserver()
           if self.playWhenReady {
             self.play()
           }
         case .unknown:
+          // `.unknown` is the normal initial status of every new item, not a failure.
           self.canPlay = false
-          self.state = .failed(error: Error.undefinedState)
+          self.state = .preparing
         case .failed:
           self.canPlay = false
           self.state = .failed(error: playerItem.error ?? Error.undefinedError)
@@ -350,12 +360,17 @@ private extension MediaPlayer {
   }
 
   func handleLoopAtIntervalEnd(time: CMTime) {
-    guard (time.seconds + Double(timeObservingMilliseconds) / 1_000) >= playbackInterval.endAt else { return }
+    let endAt = playbackInterval.endAt
+    guard endAt > 0, (time.seconds + Double(timeObservingMilliseconds) / 1_000) >= endAt else { return }
 
     if allowsLooping {
       setPlaybackPosition(to: playbackInterval.startAt)
       play()
       delegate?.mediaPlayer(didBeginReplay: self)
+    } else if endAt < duration, state == .playing {
+      // A sub-range from `play(from:to:)` ends before the item does, so the
+      // end-of-item notification never fires; stop at `toTime` explicitly.
+      pause()
     }
   }
 

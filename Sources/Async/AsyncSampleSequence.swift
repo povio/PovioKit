@@ -60,7 +60,7 @@ extension AsyncSampleSequence: AsyncSequence where C.Duration == Duration {
       }
 
       var latest: Element
-      var latestTimestamp: C.Instant
+      let latestTimestamp: C.Instant
 
       if let pending {
         latest = pending.value
@@ -92,8 +92,10 @@ extension AsyncSampleSequence: AsyncSequence where C.Duration == Duration {
           return latest
         }
 
+        // Keep the window anchored at its start: resetting it on every
+        // element would mean continuous input faster than the window
+        // never emits.
         latest = nextValue
-        latestTimestamp = now
       }
     }
   }
